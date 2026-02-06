@@ -7,10 +7,10 @@
 
 **Proyecto:** Análisis Bibliométrico - Computational Intelligence & Bio-inspired Computing  
 **Autor:** Lucas Gabirondo  
-**Versión:** 1.0  
-**Fecha:** 26 de Enero, 2026  
+**Versión:** 1.1  
+**Fecha:** 6 de Febrero, 2026  
 **Estado:** Diseño Técnico - En Revisión  
-**Referencia:** PRD v1.0
+**Referencia:** PRD v1.1
 
 ---
 
@@ -63,7 +63,7 @@ El sistema sigue una **arquitectura de capas (Layered Architecture)** con separa
                        ↑
 ┌─────────────────────────────────────────────────┐
 │    External Services (APIs Académicas)           │
-│  ArXiv, Semantic Scholar, Crossref               │
+│  ArXiv API                                       │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -108,8 +108,6 @@ El sistema sigue una **arquitectura de capas (Layered Architecture)** con separa
 
 **Componentes Involucrados**:
 - `ArxivExtractor`
-- `SemanticScholarExtractor`
-- `CrossrefExtractor`
 - `RateLimiter`
 - `RetryManager`
 - `CacheManager`
@@ -871,69 +869,6 @@ GET http://export.arxiv.org/api/query?search_query=cat:cs.AI&start=0&max_results
 
 ---
 
-#### 5.1.2 Semantic Scholar API
-
-**Endpoint**: `https://api.semanticscholar.org/graph/v1/`  
-**Protocolo**: HTTP REST  
-**Formato**: JSON  
-**Autenticación**: API Key (header `x-api-key`)
-
-**Endpoints Clave**:
-- `/paper/search` - Búsqueda de papers
-- `/paper/{paper_id}` - Detalles de paper
-- `/paper/{paper_id}/citations` - Citaciones
-- `/author/{author_id}` - Información de autor
-
-**Rate Limiting**: 
-- 100 requests/minuto (con API key)
-- 1 request/segundo (sin API key)
-
-**Parámetros**:
-- `query`: Texto de búsqueda
-- `fields`: Campos a retornar (comma-separated)
-- `limit`: Resultados por página (max 100)
-- `offset`: Paginación
-
-**Ejemplo de Request**:
-```
-GET https://api.semanticscholar.org/graph/v1/paper/search?query=computational+intelligence&fields=paperId,title,abstract,year,authors,citationCount&limit=100
-Headers: x-api-key: YOUR_API_KEY
-```
-
-**Campos Relevantes**:
-- `paperId` - ID interno
-- `externalIds.DOI` - DOI del paper
-- `citationCount` - Número de citaciones
-- `authors.authorId` - ID del autor
-- `authors.name` - Nombre del autor
-
----
-
-#### 5.1.3 Crossref API
-
-**Endpoint**: `https://api.crossref.org/works`  
-**Protocolo**: HTTP REST  
-**Formato**: JSON  
-**Autenticación**: No requerida (pero se recomienda header `mailto`)
-
-**Rate Limiting**: 
-- 50 requests/segundo (con `mailto` header)
-- Rate limiting más agresivo sin identificación
-
-**Parámetros**:
-- `query`: Búsqueda de texto completo
-- `filter`: Filtros (type, from-pub-date, until-pub-date, etc.)
-- `rows`: Resultados por página (max 1000)
-- `offset`: Paginación
-
-**Ejemplo de Request**:
-```
-GET https://api.crossref.org/works?query=bio-inspired+computing&filter=type:journal-article,from-pub-date:2015&rows=100
-Headers: User-Agent: BibliometricAnalyzer/1.0 (mailto:your@email.com)
-```
-
----
-
 ### 5.2 Interfaces Internas
 
 #### 5.2.1 IExtractor (Interfaz)
@@ -1051,7 +986,7 @@ class QueryDTO:
 
 **Componentes**:
 - `ExtractorFactory`: Clase factory
-- `ExtractorType`: Enum (ARXIV, SEMANTIC_SCHOLAR, CROSSREF)
+- `ExtractorType`: Enum (ARXIV)
 
 **Ventajas**:
 - Encapsulación de lógica de creación
@@ -1089,7 +1024,7 @@ query = (QueryBuilder()
 
 **Componentes**:
 - `IAPIAdapter`: Interfaz común
-- `ArxivAdapter`, `SemanticScholarAdapter`: Implementaciones concretas
+- `ArxivAdapter`: Implementación para ArXiv API
 
 **Ventajas**:
 - Interfaz uniforme para diferentes APIs
@@ -1221,10 +1156,6 @@ DB_PORT=5432
 DB_NAME=postgres
 DB_USER=postgres
 DB_PASSWORD=your_secure_password_here
-
-# API Keys
-SEMANTIC_SCHOLAR_API_KEY=your_api_key_here
-CROSSREF_EMAIL=your@email.com
 ```
 
 ---
@@ -1495,7 +1426,6 @@ def test_etl_pipeline_integration(test_db):
 
 **Tipos**:
 - `sample_arxiv_response.json` - Respuesta de ArXiv API
-- `sample_semantic_scholar_response.json` - Respuesta de Semantic Scholar
 - `sample_papers.json` - Papers de ejemplo
 - `sample_authors.json` - Autores de ejemplo
 
@@ -1601,9 +1531,7 @@ def test_arxiv_extractor_calls_api(mock_get):
 ```
 root
 ├── extractors
-│   ├── arxiv
-│   ├── semantic_scholar
-│   └── crossref
+│   └── arxiv
 ├── transformers
 │   ├── cleaner
 │   └── validator
@@ -1739,10 +1667,10 @@ root
                              ↓ HTTP Requests (REST)
 ┌──────────────────────────────────────────────────────────────────┐
 │                     External APIs                                 │
-│  ┌──────────────┐  ┌────────────────┐  ┌──────────────┐         │
-│  │  ArXiv API   │  │Semantic Scholar│  │Crossref API  │         │
-│  │  (XML/Atom)  │  │     (JSON)     │  │   (JSON)     │         │
-│  └──────────────┘  └────────────────┘  └──────────────┘         │
+│  ┌──────────────┐                                                 │
+│  │  ArXiv API   │                                                 │
+│  │  (XML/Atom)  │                                                 │
+│  └──────────────┘                                                 │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1769,9 +1697,7 @@ root
        ↓                                    │
 ┌──────────────────────┐                   │
 │  EXTRACT             │                   │
-│  ├─ ArXiv API        │                   │
-│  ├─ Semantic Scholar │                   │
-│  └─ Crossref API     │                   │
+│  └─ ArXiv API        │                   │
 └──────┬───────────────┘                   │
        ↓                                    │
 ┌──────────────────────┐                   │
@@ -1837,14 +1763,14 @@ root
 └───────────▲─────────────┘
             │
             │ implements
-    ┌───────┴────────┬────────────┐
-    │                │            │
-┌───┴────────┐ ┌─────┴──────┐ ┌──┴──────────┐
-│ArxivExtractor│ │SemanticScholar│ │CrossrefExtractor│
-├──────────────┤ │Extractor      │ ├─────────────────┤
-│- categories  │ │- api_key      │ │- mailto_email   │
-│+ extract()   │ │+ extract()    │ │+ extract()      │
-└──────────────┘ └───────────────┘ └─────────────────┘
+            │
+            │
+┌───────────┴────────┐
+│   ArxivExtractor   │
+├────────────────────┤
+│- categories        │
+│+ extract()         │
+└────────────────────┘
 
 ┌─────────────────────────┐
 │   DataCleaner           │
@@ -2055,8 +1981,6 @@ scikit-learn>=1.3.0
 ### 14.1 Documentación de APIs
 
 - ArXiv API: https://arxiv.org/help/api/
-- Semantic Scholar API: https://api.semanticscholar.org/
-- Crossref API: https://www.crossref.org/documentation/retrieve-metadata/rest-api/
 
 ### 14.2 Documentación Técnica
 

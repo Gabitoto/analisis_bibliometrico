@@ -14,7 +14,7 @@ Pipeline de limpieza y normalización de datos crudos de publicaciones académic
 
 ## When to Use
 
-- Después de extraer datos de APIs (ArXiv, Semantic Scholar)
+- Después de extraer datos de ArXiv API
 - Para validar y limpiar datos antes de cargar a BD
 - Al normalizar fechas, DOIs y nombres de autores
 - Para eliminar duplicados y registros inválidos

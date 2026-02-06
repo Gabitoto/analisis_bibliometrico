@@ -1,7 +1,7 @@
 # analisis_bibliometrico
 Bibliometric Analysis: Computational Intelligence &amp; Bio-inspired Computing
 
-Estado del Proyecto: X En Desarrollo (Fase de Modelado y ETL) X
+Estado del Proyecto: X En Desarrollo (Fase de Construcción de Base de Datos) X
 
 - Descripción del Proyecto
 Este proyecto consiste en un análisis bibliométrico profundo sobre las tendencias de investigación en Inteligencia Computacional y Computación Bio-inspirada. El objetivo es identificar qué sub-tópicos están liderando la academia, quiénes son los autores más influyentes y cómo han evolucionado las palabras clave en la última década.
@@ -15,7 +15,7 @@ Base de Datos: PostgreSQL (Alojada en Supabase)
 
 Herramienta BI: Power BI Desktop / Service
 
-APIs: Semantic Scholar / Crossref / ArXiv API
+APIs: ArXiv API
 
 - Arquitectura de Datos
 El proyecto se divide en tres fases críticas:

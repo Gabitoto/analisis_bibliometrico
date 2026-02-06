@@ -138,6 +138,6 @@ Para agregar un nuevo skill:
 
 ---
 
-**Última actualización**: 26 de Enero, 2026  
-**Versión**: 1.0  
+**Última actualización**: 6 de Febrero, 2026  
+**Versión**: 1.1  
 **Mantenido por**: Lucas Gabirondo

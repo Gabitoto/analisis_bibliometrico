@@ -4,28 +4,28 @@
 
 **Proyecto:** Análisis Bibliométrico - Computational Intelligence & Bio-inspired Computing  
 **Autor:** Lucas Gabirondo  
-**Versión:** 1.0  
-**Fecha:** 26 de Enero, 2026  
-**Estado:** En Desarrollo (Fase de Modelado y ETL)
+**Versión:** 1.1  
+**Fecha:** 6 de Febrero, 2026  
+**Estado:** En Desarrollo (Fase de Construcción de Base de Datos)
 
 ---
 
 ## 1. Resumen Ejecutivo
 
 ### 1.1 Visión del Producto
-Desarrollar una plataforma integral de análisis bibliométrico que permita identificar tendencias de investigación, autores influyentes y evolución de palabras clave en el campo de la Inteligencia Computacional y Computación Bio-inspirada durante la última década.
+Desarrollar una base de datos estructurada de publicaciones académicas del campo de la Inteligencia Computacional y Computación Bio-inspirada, extrayendo metadatos desde ArXiv para habilitar futuros análisis bibliométricos y visualizaciones.
 
 ### 1.2 Objetivos del Negocio
-- Automatizar la extracción y análisis de publicaciones académicas de múltiples fuentes
+- Automatizar la extracción y análisis de publicaciones académicas desde ArXiv
 - Proporcionar insights sobre tendencias emergentes en investigación
-- Identificar patrones de colaboración y citación entre investigadores
+- Identificar patrones de colaboración entre investigadores
 - Facilitar la toma de decisiones para investigadores y académicos
 
 ### 1.3 Métricas de Éxito
-- Ingesta exitosa de >10,000 publicaciones académicas
-- Dashboard interactivo con <2s de tiempo de carga
-- Actualización automatizada de datos semanalmente
-- Identificación de al menos 5 tendencias emergentes validadas
+- Ingesta exitosa de >5,000 publicaciones académicas desde ArXiv
+- Base de datos normalizada (3NF) con integridad referencial
+- Pipeline ETL funcional y documentado
+- Datos limpios y listos para análisis con <1% de errores de validación
 
 ---
 
@@ -36,7 +36,7 @@ Desarrollar una plataforma integral de análisis bibliométrico que permita iden
 | Lenguaje Backend | Python 3.10+ | Ecosistema robusto para data science y APIs |
 | Base de Datos | PostgreSQL (Supabase) | Capacidades relacionales y escalabilidad cloud |
 | Visualización | Power BI Desktop/Service | Integración empresarial y features interactivos |
-| APIs de Datos | Semantic Scholar, Crossref, ArXiv | Cobertura amplia de literatura científica |
+| API de Datos | ArXiv API | Acceso abierto a literatura científica en CS e IA |
 | Orquestación ETL | Python Scripts | Control fino y customización |
 
 ---
@@ -119,25 +119,6 @@ Desarrollar una plataforma integral de análisis bibliométrico que permita iden
 - [ ] TASK-2.1.2: Crear queries parametrizadas por categoría y fecha
 - [ ] TASK-2.1.3: Guardar respuestas raw en formato JSON
 - [ ] TASK-2.1.4: Implementar retry logic con backoff exponencial
-
----
-
-#### US-2.2: Extracción de Datos desde Semantic Scholar API
-**Como:** Data Engineer  
-**Quiero:** Enriquecer papers con métricas de citación  
-**Para:** Analizar impacto académico
-
-**Criterios de Aceptación:**
-- [ ] Búsqueda por DOI y título
-- [ ] Extracción de citation count y h-index de autores
-- [ ] Rate limiting respetado (100 req/min)
-- [ ] Datos guardados en formato estructurado
-
-**Tareas Técnicas:**
-- [ ] TASK-2.2.1: Registrar API key de Semantic Scholar
-- [ ] TASK-2.2.2: Implementar wrapper con `requests`
-- [ ] TASK-2.2.3: Parsear JSON responses y extraer campos relevantes
-- [ ] TASK-2.2.4: Cachear resultados para evitar duplicados
 
 ---
 
@@ -328,13 +309,10 @@ analisis_bibliometrico/
 │   └── sql/                    # Scripts DDL y DML
 ├── notebooks/                  # Jupyter notebooks experimentales
 │   ├── etl_api_arxiv.ipynb
-│   ├── etl_api_semantic.ipynb
 │   └── exploratory_analysis.ipynb
 ├── src/                        # Código fuente
 │   ├── extractors/             # Módulos de API clients
-│   │   ├── arxiv_client.py
-│   │   ├── semantic_scholar_client.py
-│   │   └── crossref_client.py
+│   │   └── arxiv_client.py
 │   ├── transformers/           # Pipeline de limpieza
 │   │   ├── cleaner.py
 │   │   └── validator.py
@@ -400,10 +378,6 @@ DB_NAME=postgres
 DB_USER=postgres
 DB_PASSWORD=your_password
 
-# API Keys
-SEMANTIC_SCHOLAR_API_KEY=your_key
-CROSSREF_EMAIL=your@email.com
-
 # Config
 LOG_LEVEL=INFO
 BATCH_SIZE=1000
@@ -415,8 +389,8 @@ BATCH_SIZE=1000
 
 | Riesgo | Probabilidad | Impacto | Mitigación |
 |--------|--------------|---------|------------|
-| Rate limiting de APIs | Alta | Medio | Implementar caching y distribución temporal |
-| Cambios en esquema de APIs | Media | Alto | Versionar API clients y tests de integración |
+| Rate limiting de ArXiv API | Media | Medio | Implementar caching y distribución temporal |
+| Cambios en esquema de ArXiv API | Baja | Medio | Versionar API client y tests de integración |
 | Calidad de datos inconsistente | Alta | Alto | Pipeline robusto de validación |
 | Sobrecarga de BD con papers duplicados | Media | Medio | Constraints UNIQUE y deduplicación |
 
@@ -430,7 +404,7 @@ BATCH_SIZE=1000
 - ✅ Scripts DDL ejecutados
 
 ### Fase 2: ETL Core (Semanas 3-5)
-- 🔄 Extractores de ArXiv y Semantic Scholar
+- 🔄 Extractor de ArXiv
 - 🔄 Pipeline de transformación
 - ⬜ Carga automatizada a PostgreSQL
 
@@ -484,5 +458,5 @@ BATCH_SIZE=1000
 
 ---
 
-**Última actualización:** 26 de Enero, 2026  
-**Próxima revisión:** 15 de Febrero, 2026
+**Última actualización:** 6 de Febrero, 2026  
+**Próxima revisión:** 28 de Febrero, 2026
