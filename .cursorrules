@@ -1,0 +1,323 @@
+# Spec-Kit Commands for Cursor
+
+## Project Context
+
+This is a bibliometric analysis project for Computational Intelligence and Bio-inspired Computing research. We follow Spec-Driven Development methodology using the GitHub spec-kit framework.
+
+## Available Slash Commands
+
+### /speckit.constitution
+
+**Purpose**: Create or update project governing principles and development guidelines.
+
+**When to use**: At project start or when establishing new standards.
+
+**Process**:
+1. Read existing `.specify/memory/constitution.md` if it exists
+2. Ask clarifying questions about principles, standards, and constraints
+3. Create or update constitution with:
+   - Core principles
+   - Technical standards (code style, database conventions)
+   - Decision guidelines
+   - Performance requirements
+   - Security standards
+   - Workflow standards
+4. Save to `.specify/memory/constitution.md`
+5. Validate that constitution addresses: data quality, testing, simplicity, and academic focus
+
+**Output**: Updated `.specify/memory/constitution.md` file
+
+---
+
+### /speckit.specify
+
+**Purpose**: Define what you want to build (requirements and user stories).
+
+**When to use**: When starting a new feature or capability.
+
+**Process**:
+1. Read `.specify/memory/constitution.md` to understand project principles
+2. Parse user's natural language description of the feature
+3. Ask clarifying questions to understand:
+   - User scenarios and workflows
+   - Success criteria
+   - Functional requirements
+   - Data entities involved
+4. Create feature specification using template at `.specify/templates/spec-template.md`
+5. Generate feature branch name (e.g., `002-arxiv-extraction`)
+6. Create directory `.specify/specs/###-feature-name/`
+7. Save spec as `.specify/specs/###-feature-name/spec.md`
+8. Include:
+   - User stories with Given-When-Then scenarios
+   - Functional requirements (FR-001, FR-002, etc.)
+   - Success criteria with measurable outcomes
+   - Edge cases
+   - Dependencies and out of scope items
+
+**Output**: New `.specify/specs/###-feature-name/spec.md` file
+
+---
+
+### /speckit.clarify
+
+**Purpose**: Clarify underspecified areas in the specification (recommended before `/speckit.plan`).
+
+**When to use**: After creating initial spec but before technical planning.
+
+**Process**:
+1. Read the current feature spec from `.specify/specs/###-feature-name/spec.md`
+2. Analyze for:
+   - Vague requirements (marked with NEEDS CLARIFICATION)
+   - Missing acceptance criteria
+   - Incomplete user scenarios
+   - Undefined edge cases
+3. Ask focused questions to user
+4. Record clarifications in a "Clarifications" section within spec.md
+5. Update functional requirements with concrete details
+6. Mark unclear items as resolved
+
+**Output**: Updated spec.md with clarifications section
+
+---
+
+### /speckit.plan
+
+**Purpose**: Create technical implementation plan with chosen tech stack.
+
+**When to use**: After spec is clarified and approved.
+
+**Process**:
+1. Read `.specify/memory/constitution.md` for technical standards
+2. Read `.specify/specs/###-feature-name/spec.md` for requirements
+3. Ask user for tech stack preferences if not specified
+4. Create implementation plan including:
+   - Architecture overview
+   - Component breakdown
+   - Data model (if applicable)
+   - API contracts (if applicable)
+   - Implementation phases
+   - Testing strategy
+   - Required dependencies
+5. Save to `.specify/specs/###-feature-name/plan.md`
+6. Create additional files if needed:
+   - `data-model.md` - Detailed schema
+   - `api-spec.json` - OpenAPI specification
+   - `research.md` - Tech stack research
+   - `quickstart.md` - Developer setup guide
+
+**Important**: Follow constitution principles:
+- Prefer simplicity over complexity
+- Use established, stable technologies
+- Avoid over-engineering
+- Focus on data quality
+
+**Output**: 
+- `.specify/specs/###-feature-name/plan.md`
+- Optional: `data-model.md`, `api-spec.json`, `research.md`, `quickstart.md`
+
+---
+
+### /speckit.tasks
+
+**Purpose**: Generate actionable task list from implementation plan.
+
+**When to use**: After plan is reviewed and approved.
+
+**Process**:
+1. Read `.specify/specs/###-feature-name/plan.md`
+2. Break down into specific, atomic tasks
+3. Order tasks by dependencies
+4. Mark tasks that can be parallelized with [P]
+5. For each task specify:
+   - Task ID (TASK-###)
+   - Description
+   - File paths to create/modify
+   - Acceptance criteria
+   - Estimated complexity (S/M/L)
+6. Group by user story if multiple stories exist
+7. Add checkpoint validations between phases
+8. Save to `.specify/specs/###-feature-name/tasks.md`
+
+**Task Format**:
+```markdown
+### TASK-001: [Description] (Complexity: M)
+**Files**: `src/path/to/file.py`
+**Acceptance**: [Specific verification]
+**Dependencies**: None | TASK-###
+```
+
+**Output**: `.specify/specs/###-feature-name/tasks.md`
+
+---
+
+### /speckit.implement
+
+**Purpose**: Execute all tasks to build the feature according to the plan.
+
+**When to use**: After tasks are created and reviewed.
+
+**Process**:
+1. Validate prerequisites exist:
+   - `.specify/memory/constitution.md`
+   - `.specify/specs/###-feature-name/spec.md`
+   - `.specify/specs/###-feature-name/plan.md`
+   - `.specify/specs/###-feature-name/tasks.md`
+2. Parse tasks from tasks.md
+3. Execute tasks in order, respecting dependencies
+4. For each task:
+   - Create/modify specified files
+   - Follow TDD if tests are defined
+   - Run tests to verify acceptance criteria
+   - Mark task as complete
+5. Handle errors:
+   - Log error details
+   - Attempt fix if possible
+   - Ask user for guidance if stuck
+6. Provide progress updates
+7. Run final validation tests
+8. Update status in spec.md
+
+**Important**:
+- Follow code style from constitution
+- Write tests before implementation (TDD)
+- Commit frequently with descriptive messages
+- Update documentation as you go
+
+**Output**: Working implementation with all tasks completed
+
+---
+
+### /speckit.analyze
+
+**Purpose**: Cross-artifact consistency & coverage analysis.
+
+**When to use**: After tasks created, before implementation.
+
+**Process**:
+1. Read constitution, spec, plan, and tasks
+2. Verify:
+   - All functional requirements have corresponding tasks
+   - All user stories are covered by tasks
+   - Tasks align with plan's architecture
+   - No contradictions between artifacts
+   - Acceptance criteria are testable
+3. Report findings:
+   - Missing coverage
+   - Inconsistencies
+   - Potential risks
+4. Suggest corrections if issues found
+
+**Output**: Analysis report with recommendations
+
+---
+
+### /speckit.checklist
+
+**Purpose**: Generate custom quality checklists (like "unit tests for English").
+
+**When to use**: To validate spec completeness and quality.
+
+**Process**:
+1. Read the current spec
+2. Generate checklist items for:
+   - Requirements completeness
+   - Clarity of user scenarios
+   - Measurability of success criteria
+   - Edge case coverage
+   - Consistency with constitution
+3. Save checklist within spec.md
+4. Mark items as checked or unchecked
+5. Report on checklist status
+
+**Output**: Quality checklist section in spec.md
+
+---
+
+## Workflow Example
+
+```bash
+# 1. Establish project principles (once)
+/speckit.constitution Create principles focused on data quality, 
+testing standards, and simplicity
+
+# 2. Create feature specification
+/speckit.specify Build database schema for storing ArXiv papers with 
+authors, keywords, and citations
+
+# 3. Clarify requirements
+/speckit.clarify
+
+# 4. Create technical plan
+/speckit.plan Use PostgreSQL with Supabase, Python 3.10+, 
+follow 3NF normalization
+
+# 5. Generate tasks
+/speckit.tasks
+
+# 6. Optional: Analyze for consistency
+/speckit.analyze
+
+# 7. Implement
+/speckit.implement
+```
+
+## File Structure
+
+```
+.specify/
+├── memory/
+│   └── constitution.md          # Project principles
+├── specs/
+│   ├── 001-database-setup/
+│   │   ├── spec.md             # Requirements & user stories
+│   │   ├── plan.md             # Technical implementation plan
+│   │   ├── tasks.md            # Task breakdown
+│   │   ├── data-model.md       # Database schema (if applicable)
+│   │   └── research.md         # Tech research notes
+│   └── 002-arxiv-extraction/
+│       ├── spec.md
+│       └── ...
+└── templates/
+    ├── spec-template.md
+    ├── plan-template.md
+    └── tasks-template.md
+```
+
+## Current Project Status
+
+- **Constitution**: ✅ Created
+- **Feature 001 (Database Setup)**: ✅ Spec created, ready for planning
+- **Feature 002 (ArXiv Extraction)**: ⬜ Not started
+- **Feature 003 (Data Transformation)**: ⬜ Not started
+- **Feature 004 (Data Loading)**: ⬜ Not started
+
+## Important Notes
+
+1. **Always read constitution first** before creating specs or plans
+2. **Clarify before planning** to avoid rework downstream
+3. **Generate tasks before implementing** for structured development
+4. **Follow TDD** - write tests before implementation
+5. **Update specs** as implementation reveals new requirements
+6. **Commit frequently** with descriptive messages
+
+## Project-Specific Guidance
+
+### Tech Stack (from Constitution)
+- Language: Python 3.10+
+- Database: PostgreSQL 15+ (Supabase)
+- BI Tool: Power BI
+- API: ArXiv API only (no Semantic Scholar or Crossref)
+- Testing: pytest with >80% coverage
+
+### Key Principles
+- Data quality >95%
+- Simplicity over abstraction
+- 3NF database normalization
+- Idempotent ETL processes
+- Rate limiting (1 req/3s for ArXiv)
+
+### Code Style
+- PEP 8 compliance
+- Type hints required
+- Google-style docstrings
+- Maximum line length: 100 characters

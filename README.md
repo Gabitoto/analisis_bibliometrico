@@ -1,12 +1,15 @@
 # analisis_bibliometrico
 Bibliometric Analysis: Computational Intelligence &amp; Bio-inspired Computing
 
-Estado del Proyecto: X En Desarrollo (Fase de Construcción de Base de Datos) X
+**Estado del Proyecto**: 🚧 En Desarrollo (Spec-Driven Development con spec-kit)
 
 - Descripción del Proyecto
+
 Este proyecto consiste en un análisis bibliométrico profundo sobre las tendencias de investigación en Inteligencia Computacional y Computación Bio-inspirada. El objetivo es identificar qué sub-tópicos están liderando la academia, quiénes son los autores más influyentes y cómo han evolucionado las palabras clave en la última década.
 
-El flujo de trabajo abarca desde la ingesta de datos vía APIs académicas, el almacenamiento en una base de datos relacional, hasta la creación de un tablero interactivo en Power BI.
+El proyecto utiliza **Spec-Driven Development** con [GitHub spec-kit](https://github.com/github/spec-kit) para un desarrollo estructurado mediante especificaciones ejecutables.
+
+El flujo de trabajo abarca desde la ingesta de datos vía ArXiv API, el almacenamiento en una base de datos relacional (PostgreSQL/Supabase), hasta la creación de un tablero interactivo en Power BI.
 
 - Stack Tecnológico
 Lenguaje: Python (Extracción y Minería)
@@ -52,14 +55,32 @@ Análisis de Redes: Visualización de grafos de colaboración entre investigador
 
 Predicción de Tendencias: Modelos de series temporales para predecir cuál será el próximo "hot topic" en IA.
 
+- Desarrollo con Spec-Kit
+
+Este proyecto usa comandos slash en Cursor para desarrollo estructurado:
+
+```
+/speckit.constitution  # Definir principios del proyecto
+/speckit.specify       # Crear especificación de feature
+/speckit.plan          # Generar plan técnico
+/speckit.tasks         # Desglosar en tareas
+/speckit.implement     # Implementar feature
+```
+
+Ver [.specify/README.md](.specify/README.md) para guía completa.
+
 - Estructura del Repositorio
 
-
+```
+├── .specify/           # Spec-kit: specs, constitution, templates
 ├── data/               # Muestras de datos y esquemas SQL
 ├── notebooks/          # Notebooks de Python para pruebas de API y ETL
 ├── powerbi/            # Archivo .pbix del tablero
 ├── src/                # Scripts de automatización
+├── PRD.md              # Product Requirements Document
+├── SDD.md              # Spec-Driven Development especificaciones
 └── README.md           # El archivo que estás leyendo
+```
 
 - Autor
 Lucas Gabirondo
