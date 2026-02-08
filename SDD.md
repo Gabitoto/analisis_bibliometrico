@@ -1,4 +1,4 @@
-# SDD - Software Design Document
+# SDD - Spec Driven Development
 ## Sistema de Análisis Bibliométrico
 
 ---
@@ -7,1388 +7,1049 @@
 
 **Proyecto:** Análisis Bibliométrico - Computational Intelligence & Bio-inspired Computing  
 **Autor:** Lucas Gabirondo  
-**Versión:** 1.1  
+**Versión:** 2.0  
 **Fecha:** 6 de Febrero, 2026  
-**Estado:** Diseño Técnico - En Revisión  
+**Estado:** Especificación Activa  
 **Referencia:** PRD v1.1
 
 ---
 
 ## Tabla de Contenidos
 
-1. [Visión General de Arquitectura](#1-visión-general-de-arquitectura)
-2. [Capacidades del Sistema](#2-capacidades-del-sistema)
-3. [Diseño de Componentes](#3-diseño-de-componentes)
-4. [Modelo de Datos](#4-modelo-de-datos)
-5. [Interfaces y APIs](#5-interfaces-y-apis)
-6. [Patrones de Diseño](#6-patrones-de-diseño)
-7. [Consideraciones de Seguridad](#7-consideraciones-de-seguridad)
-8. [Estrategia de Testing](#8-estrategia-de-testing)
-9. [Monitoreo y Observabilidad](#9-monitoreo-y-observabilidad)
-10. [Diagramas Técnicos](#10-diagramas-técnicos)
+1. [Qué es Spec Driven Development](#1-qué-es-spec-driven-development)
+2. [Stack Tecnológico](#2-stack-tecnológico)
+3. [Especificaciones de Componentes](#3-especificaciones-de-componentes)
+4. [Especificación de Base de Datos](#4-especificación-de-base-de-datos)
+5. [Especificación de APIs](#5-especificación-de-apis)
+6. [Criterios de Calidad](#6-criterios-de-calidad)
+7. [Ejemplos de Uso](#7-ejemplos-de-uso)
 
 ---
 
-## 1. Visión General de Arquitectura
+## 1. Qué es Spec Driven Development
 
-### 1.1 Estilo Arquitectónico
+### 1.1 Filosofía
 
-El sistema sigue una **arquitectura de capas (Layered Architecture)** con separación clara de responsabilidades:
+**Spec Driven Development (SDD)** es un enfoque donde **las especificaciones son ejecutables y verificables**. En lugar de diseñar componentes abstractos, definimos:
 
-```
-┌─────────────────────────────────────────────────┐
-│          Presentation Layer (Power BI)          │
-│  Visualización, Dashboards, Reportes            │
-└─────────────────────────────────────────────────┘
-                       ↑
-┌─────────────────────────────────────────────────┐
-│           Business Logic Layer                   │
-│  Análisis, Agregaciones, Validación             │
-└─────────────────────────────────────────────────┘
-                       ↑
-┌─────────────────────────────────────────────────┐
-│         Data Access Layer (DAL)                  │
-│  ORM, Repositories, Query Builders               │
-└─────────────────────────────────────────────────┘
-                       ↑
-┌─────────────────────────────────────────────────┐
-│         Data Layer (PostgreSQL)                  │
-│  Persistencia, Transacciones, Constraints        │
-└─────────────────────────────────────────────────┘
-                       ↑
-┌─────────────────────────────────────────────────┐
-│         Integration Layer (ETL)                  │
-│  Extractors, Transformers, Loaders               │
-└─────────────────────────────────────────────────┘
-                       ↑
-┌─────────────────────────────────────────────────┐
-│    External Services (APIs Académicas)           │
-│  ArXiv API                                       │
-└─────────────────────────────────────────────────┘
+1. **Comportamiento esperado** (Given-When-Then)
+2. **Ejemplos concretos** de entrada/salida
+3. **Criterios de aceptación** medibles
+4. **Tests como documentación** viva
+
+### 1.2 Principios
+
+✅ **Especificaciones Ejecutables**: Cada spec puede convertirse en test  
+✅ **Ejemplos Reales**: Usar datos reales, no pseudocódigo  
+✅ **Verificación Automática**: Los tests validan las specs  
+✅ **Documentación Viva**: Las specs se actualizan con el código
+
+### 1.3 Estructura de una Spec
+
+```gherkin
+SPEC: [Nombre descriptivo]
+
+GIVEN: [Condiciones iniciales]
+WHEN: [Acción ejecutada]
+THEN: [Resultado esperado]
+
+EXAMPLES:
+  Input: [datos concretos]
+  Output: [resultado esperado]
+
+ACCEPTANCE CRITERIA:
+  ✅ [Criterio 1]
+  ✅ [Criterio 2]
 ```
 
-### 1.2 Principios de Diseño
+---
 
-- **Separation of Concerns**: Cada capa tiene responsabilidades bien definidas
-- **DRY (Don't Repeat Yourself)**: Componentes reutilizables
-- **SOLID Principles**: Aplicados en diseño de clases y módulos
-- **Fail-Fast**: Validación temprana de datos
-- **Idempotencia**: Operaciones ETL pueden re-ejecutarse sin efectos secundarios
+## 2. Stack Tecnológico
 
-### 1.3 Stack Tecnológico por Capa
+### 2.1 Core Technologies
 
-| Capa | Tecnologías |
-|------|-------------|
-| Presentation | Power BI Desktop/Service, DAX |
-| Business Logic | Python 3.10+, pandas, numpy |
-| Data Access | SQLAlchemy 2.0, psycopg2 |
-| Data Storage | PostgreSQL 15+ (Supabase) |
-| Integration | Python, requests, arxiv library |
-| External | REST APIs (JSON over HTTPS) |
+| Categoría | Tecnología | Versión | Justificación |
+|-----------|-----------|---------|---------------|
+| **Lenguaje** | Python | 3.10+ | Ecosistema robusto para data science |
+| **Base de Datos** | PostgreSQL | 15+ | Capacidades relacionales y JSON |
+| **Hosting BD** | Supabase | Cloud | PostgreSQL gestionado con backups |
+| **Visualización** | Power BI | Desktop/Service | Integración empresarial |
+| **API Client** | arxiv library | 2.0+ | Cliente oficial de ArXiv |
+| **HTTP Client** | requests | 2.31+ | HTTP robusto con retries |
+| **Data Processing** | pandas | 2.0+ | Manipulación de datos |
+| **DB Driver** | psycopg2 | 2.9+ | Driver PostgreSQL |
+
+### 2.2 Testing & Quality
+
+| Herramienta | Versión | Propósito |
+|-------------|---------|-----------|
+| **pytest** | 7.4+ | Framework de testing |
+| **pytest-cov** | 4.1+ | Cobertura de código |
+| **black** | 23.0+ | Formateador de código |
+| **flake8** | 6.0+ | Linter |
+| **mypy** | 1.0+ | Type checking |
+
+### 2.3 Development Tools
+
+| Herramienta | Propósito |
+|-------------|-----------|
+| **python-dotenv** | Gestión de variables de entorno |
+| **tqdm** | Progress bars |
+| **loguru** | Logging estructurado |
 
 ---
 
-## 2. Capacidades del Sistema
+## 3. Especificaciones de Componentes
 
-### 2.1 Capacidad #1: Sistema de Extracción de Datos
+### 3.1 ArxivExtractor
 
-**Descripción**: Consumo automatizado de múltiples APIs académicas para obtener metadatos de publicaciones científicas.
+#### SPEC-001: Extracción Básica de Papers
 
-**Requisitos Funcionales**:
-- Búsqueda parametrizada por categoría, fecha, keywords
-- Paginación para grandes volúmenes (>10,000 papers)
-- Rate limiting inteligente (respeta límites de APIs)
-- Reintentos automáticos con backoff exponencial
-- Almacenamiento de respuestas raw en JSON
+**GIVEN:** Una categoría válida de ArXiv  
+**WHEN:** Se ejecuta extract() con la categoría  
+**THEN:** Retorna lista de papers con metadatos completos
 
-**Requisitos No Funcionales**:
-- **Performance**: Extraer >5000 papers/hora
-- **Reliability**: 99% de éxito en requests (con retries)
-- **Maintainability**: Fácil agregar nuevas fuentes de datos
+**EJEMPLO:**
 
-**Componentes Involucrados**:
-- `ArxivExtractor`
-- `RateLimiter`
-- `RetryManager`
-- `CacheManager`
+```python
+# Input
+extractor = ArxivExtractor()
+query = {
+    'categories': ['cs.AI'],
+    'max_results': 10
+}
 
----
+# Expected Output
+papers = extractor.extract(query)
 
-### 2.2 Capacidad #2: Sistema de Transformación de Datos
+assert len(papers) == 10
+assert all('title' in p for p in papers)
+assert all('authors' in p for p in papers)
+assert all('published_date' in p for p in papers)
+```
 
-**Descripción**: Pipeline de limpieza, normalización y enriquecimiento de datos crudos.
+**ACCEPTANCE CRITERIA:**
 
-**Requisitos Funcionales**:
-- Limpieza de strings (encoding, caracteres especiales)
-- Normalización de fechas a ISO 8601
-- Validación de DOIs con regex
-- Deduplicación por DOI y título
-- Extracción de keywords con NLP básico
-- Normalización de nombres de autores (ORCID)
-
-**Requisitos No Funcionales**:
-- **Data Quality**: >95% de registros válidos
-- **Performance**: Procesar 10,000 papers en <5 minutos
-- **Traceability**: Logs de cada transformación aplicada
-
-**Componentes Involucrados**:
-- `DataCleaner`
-- `DateNormalizer`
-- `DOIValidator`
-- `DeduplicationEngine`
-- `KeywordExtractor`
-- `AuthorNormalizer`
+- ✅ Retorna exactamente N papers si existen (donde N = max_results)
+- ✅ Cada paper tiene campos obligatorios: title, authors, published_date
+- ✅ Respeta rate limit de 3 segundos entre requests
+- ✅ Guarda respuesta raw en `data/raw/arxiv/`
+- ✅ Retorna lista vacía si no hay resultados (no falla)
 
 ---
 
-### 2.3 Capacidad #3: Sistema de Persistencia
+#### SPEC-002: Manejo de Rate Limiting
 
-**Descripción**: Almacenamiento robusto y escalable en base de datos relacional con integridad referencial.
+**GIVEN:** Múltiples requests consecutivos a ArXiv API  
+**WHEN:** Se ejecutan extracciones back-to-back  
+**THEN:** Espera mínimo 3 segundos entre cada request
 
-**Requisitos Funcionales**:
-- Carga incremental (upsert)
-- Transacciones ACID
-- Manejo de relaciones N:M
-- Auditoría de cambios (triggers)
-- Vistas materializadas para agregaciones
+**EJEMPLO:**
 
-**Requisitos No Funcionales**:
-- **Performance**: >1000 inserts/segundo (bulk)
-- **Durability**: Backups automáticos diarios
-- **Scalability**: Soportar hasta 100,000 papers
-- **Consistency**: Constraints de integridad referencial
+```python
+import time
 
-**Componentes Involucrados**:
-- `PostgresLoader`
-- `UpsertManager`
-- `TransactionManager`
-- `ConnectionPool`
-- `MigrationManager`
+extractor = ArxivExtractor()
+times = []
 
----
+for i in range(3):
+    start = time.time()
+    extractor.extract({'categories': ['cs.AI'], 'max_results': 1})
+    times.append(time.time() - start)
 
-### 2.4 Capacidad #4: Sistema de Visualización y BI
+# Verificar que hay espera entre requests
+assert times[1] >= 3.0  # Segunda request esperó
+assert times[2] >= 3.0  # Tercera request esperó
+```
 
-**Descripción**: Dashboard interactivo para análisis exploratorio y generación de insights.
+**ACCEPTANCE CRITERIA:**
 
-**Requisitos Funcionales**:
-- Gráficos de tendencias temporales
-- Mapas geográficos interactivos
-- Scatter plots con correlaciones
-- Filtros dinámicos (slicers)
-- Exportación a PDF
-
-**Requisitos No Funcionales**:
-- **Performance**: Tiempo de carga <2 segundos
-- **Usability**: Interfaz intuitiva sin capacitación
-- **Responsiveness**: Interacciones <500ms
-- **Accessibility**: Cumplir estándares WCAG 2.1
-
-**Componentes Involucrados**:
-- `KeywordTrendView`
-- `GeographicDistributionMap`
-- `CitationImpactAnalysis`
-- `DAXMeasures`
-- `SQLViews`
+- ✅ Intervalo mínimo de 3 segundos entre requests
+- ✅ No bloquea innecesariamente el primer request
+- ✅ Usa monotonic time para evitar problemas de sincronización
 
 ---
 
-### 2.5 Capacidad #5: Sistema de Análisis Avanzado
+#### SPEC-003: Guardado de Respuestas Raw
 
-**Descripción**: Módulos de machine learning y análisis de redes para insights profundos (Fase Futura).
+**GIVEN:** Papers extraídos exitosamente  
+**WHEN:** Se completa la extracción  
+**THEN:** Guarda JSON en data/raw/arxiv/ con timestamp
 
-**Requisitos Funcionales**:
-- Análisis de sentimiento en abstracts (NLP)
-- Topic modeling con LDA
-- Análisis de redes de colaboración
-- Predicción de tendencias con series temporales
+**EJEMPLO:**
 
-**Requisitos No Funcionales**:
-- **Accuracy**: >80% en clasificación de sentimiento
-- **Performance**: Procesamiento batch de 10,000 abstracts <1 hora
-- **Scalability**: Modelos reentrenables con nuevos datos
-- **Interpretability**: Resultados explicables
+```python
+import os
+import json
+from datetime import datetime
 
-**Componentes Involucrados**:
-- `SentimentAnalyzer`
-- `TopicModeler`
-- `NetworkAnalyzer`
-- `TrendPredictor`
-- `MLPipeline`
+extractor = ArxivExtractor(output_dir='data/raw/arxiv')
+papers = extractor.extract({'categories': ['cs.AI'], 'max_results': 5})
 
----
+# Verificar que existe archivo
+files = os.listdir('data/raw/arxiv')
+assert len(files) > 0
 
-## 3. Diseño de Componentes
+# Verificar formato de nombre: arxiv_papers_YYYYMMDD_HHMMSS.json
+latest_file = max(files, key=lambda f: os.path.getctime(f'data/raw/arxiv/{f}'))
+assert latest_file.startswith('arxiv_papers_')
+assert latest_file.endswith('.json')
 
-### 3.1 Capa de Integración (ETL Layer)
+# Verificar contenido
+with open(f'data/raw/arxiv/{latest_file}', 'r') as f:
+    saved_papers = json.load(f)
+    assert len(saved_papers) == 5
+```
 
-#### 3.1.1 BaseExtractor (Clase Abstracta)
+**ACCEPTANCE CRITERIA:**
 
-**Responsabilidad**: Plantilla para todos los extractores de APIs.
-
-**Atributos**:
-- `api_url: str` - URL base de la API
-- `rate_limiter: RateLimiter` - Control de tasa de requests
-- `cache: CacheManager` - Cache de respuestas
-- `retry_policy: RetryPolicy` - Configuración de reintentos
-
-**Métodos Principales**:
-- `extract(query: Query) -> List[Dict]` - (Abstracto) Extraer datos
-- `_make_request(endpoint: str, params: Dict) -> Response` - HTTP request con retries
-- `_parse_response(response: Response) -> List[Dict]` - Parseo de JSON
-- `_save_raw(data: List[Dict], filename: str) -> None` - Guardar respuesta raw
-
-**Patrones Aplicados**:
-- Template Method (método `extract`)
-- Strategy (política de reintentos intercambiable)
+- ✅ Archivo JSON válido
+- ✅ Nombre con timestamp: `arxiv_papers_YYYYMMDD_HHMMSS.json`
+- ✅ Contenido es array de papers
+- ✅ Encoding UTF-8
+- ✅ Crea directorio si no existe
 
 ---
 
-#### 3.1.2 ArxivExtractor (Clase Concreta)
+### 3.2 DataCleaner
 
-**Responsabilidad**: Extracción desde ArXiv API.
+#### SPEC-004: Limpieza de Texto
 
-**Atributos Específicos**:
-- `categories: List[str]` - Categorías a buscar (cs.AI, cs.NE, etc.)
-- `max_results_per_query: int` - Límite de paginación
+**GIVEN:** Texto con caracteres especiales y espacios múltiples  
+**WHEN:** Se ejecuta clean_text()  
+**THEN:** Retorna texto normalizado
 
-**Métodos Específicos**:
-- `extract_by_category(category: str, date_range: DateRange) -> List[Paper]`
-- `extract_by_keywords(keywords: List[str]) -> List[Paper]`
-- `_build_query_string(filters: Dict) -> str` - Construcción de query ArXiv
+**EJEMPLO:**
 
-**Dependencias**:
-- `arxiv` library (oficial)
-- `BaseExtractor`
+```python
+cleaner = DataCleaner()
 
----
+# Test 1: Espacios múltiples
+input1 = "Neural    Networks   and    Deep Learning"
+output1 = cleaner.clean_text(input1)
+assert output1 == "Neural Networks and Deep Learning"
 
-#### 3.1.3 SemanticScholarExtractor (Clase Concreta)
+# Test 2: Saltos de línea
+input2 = "Machine\nLearning\nAlgorithms"
+output2 = cleaner.clean_text(input2)
+assert output2 == "Machine Learning Algorithms"
 
-**Responsabilidad**: Enriquecimiento con métricas de citación.
+# Test 3: Espacios al inicio/final
+input3 = "  Bio-inspired Computing  "
+output3 = cleaner.clean_text(input3)
+assert output3 == "Bio-inspired Computing"
 
-**Atributos Específicos**:
-- `api_key: str` - Credencial (variable de entorno)
-- `fields: List[str]` - Campos a extraer (citations, authors.hIndex, etc.)
+# Test 4: String vacío
+assert cleaner.clean_text("") == ""
+assert cleaner.clean_text(None) == ""
+```
 
-**Métodos Específicos**:
-- `extract_by_doi(doi: str) -> Paper`
-- `extract_citations(paper_id: str) -> List[Citation]`
-- `extract_author_metrics(author_id: str) -> AuthorMetrics`
-- `_handle_rate_limit() -> None` - Espera si se alcanza límite
+**ACCEPTANCE CRITERIA:**
 
-**Consideraciones**:
-- Rate limit: 100 req/min (sleeps inteligentes)
-- Cache obligatorio para evitar requests duplicados
-
----
-
-#### 3.1.4 DataCleaner (Servicio)
-
-**Responsabilidad**: Limpieza y normalización de datos crudos.
-
-**Métodos Principales**:
-- `clean_text(text: str) -> str` - Normalización de strings
-- `normalize_date(date_str: str) -> datetime` - Conversión a ISO 8601
-- `validate_doi(doi: str) -> bool` - Validación con regex
-- `remove_duplicates(papers: List[Paper]) -> List[Paper]` - Deduplicación
-- `extract_keywords(text: str, method: str) -> List[str]` - Extracción NLP
-
-**Algoritmos de Deduplicación**:
-1. Exact match por DOI (prioridad alta)
-2. Fuzzy match por título (similarity >90%)
-3. Match por (autores + fecha + título parcial)
-
-**Validaciones de DOI**:
-- Regex: `^10.\d{4,9}/[-._;()/:A-Z0-9]+$` (case insensitive)
-- Verificación de checksum cuando aplique
+- ✅ Remueve espacios múltiples
+- ✅ Convierte \n a espacios simples
+- ✅ Trim de espacios al inicio/final
+- ✅ Maneja None y strings vacíos sin error
+- ✅ Preserva acentos y caracteres especiales válidos
 
 ---
 
-#### 3.1.5 PostgresLoader (Servicio)
+#### SPEC-005: Normalización de Fechas
 
-**Responsabilidad**: Carga eficiente a base de datos.
+**GIVEN:** Fecha en diferentes formatos  
+**WHEN:** Se ejecuta normalize_date()  
+**THEN:** Retorna fecha en formato ISO 8601 (YYYY-MM-DD)
 
-**Métodos Principales**:
-- `load_papers(papers: List[Paper]) -> LoadResult` - Carga con upsert
-- `load_authors(authors: List[Author]) -> LoadResult` - Carga de autores
-- `load_relationships(relationships: List[Relationship]) -> LoadResult` - Tablas N:M
-- `bulk_insert(records: List[Dict], table: str) -> int` - Inserción masiva con COPY
-- `create_checkpoint(batch_id: str) -> None` - Punto de recuperación
+**EJEMPLO:**
 
-**Estrategia de Upsert**:
+```python
+cleaner = DataCleaner()
+
+# Casos válidos
+assert cleaner.normalize_date("2024-01-15") == "2024-01-15"
+assert cleaner.normalize_date("2024/01/15") == "2024-01-15"
+assert cleaner.normalize_date("15-01-2024") == "2024-01-15"
+assert cleaner.normalize_date("20240115") == "2024-01-15"
+
+# Casos inválidos
+assert cleaner.normalize_date("invalid") == None
+assert cleaner.normalize_date("") == None
+assert cleaner.normalize_date(None) == None
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Soporta formatos: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, YYYYMMDD
+- ✅ Output siempre ISO 8601 (YYYY-MM-DD)
+- ✅ Retorna None para formatos inválidos (no lanza excepción)
+- ✅ Valida fechas reales (no acepta 2024-02-30)
+
+---
+
+#### SPEC-006: Validación de DOI
+
+**GIVEN:** String que podría ser un DOI  
+**WHEN:** Se ejecuta validate_doi()  
+**THEN:** Retorna True si es DOI válido, False si no
+
+**EJEMPLO:**
+
+```python
+cleaner = DataCleaner()
+
+# DOIs válidos
+assert cleaner.validate_doi("10.1234/example.paper") == True
+assert cleaner.validate_doi("10.1000/xyz123") == True
+assert cleaner.validate_doi("10.1016/j.neunet.2023.01.001") == True
+
+# DOIs inválidos
+assert cleaner.validate_doi("not-a-doi") == False
+assert cleaner.validate_doi("10/missing-prefix") == False
+assert cleaner.validate_doi("") == False
+assert cleaner.validate_doi(None) == False
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Regex: `^10\.\d{4,9}/[-._;()/:A-Za-z0-9]+$`
+- ✅ Case insensitive
+- ✅ No lanza excepciones con None o strings vacíos
+- ✅ Retorna boolean (nunca None)
+
+---
+
+#### SPEC-007: Eliminación de Duplicados
+
+**GIVEN:** Lista de papers con algunos duplicados  
+**WHEN:** Se ejecuta remove_duplicates()  
+**THEN:** Retorna lista sin duplicados, priorizando por DOI
+
+**EJEMPLO:**
+
+```python
+cleaner = DataCleaner()
+
+papers = [
+    {'doi': '10.1234/a', 'title': 'Paper A'},
+    {'doi': '10.1234/b', 'title': 'Paper B'},
+    {'doi': '10.1234/a', 'title': 'Paper A Duplicado'},  # Duplicado por DOI
+    {'doi': None, 'title': 'Paper C'},
+    {'doi': None, 'title': 'Paper C'},  # Duplicado por título
+]
+
+result = cleaner.remove_duplicates(papers)
+
+assert len(result) == 3
+assert result[0]['doi'] == '10.1234/a'  # Primer DOI mantenido
+assert result[1]['doi'] == '10.1234/b'
+assert result[2]['title'] == 'Paper C'
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Elimina duplicados por DOI (prioridad 1)
+- ✅ Elimina duplicados por título exacto (prioridad 2)
+- ✅ Mantiene primer ocurrencia (keep='first')
+- ✅ Maneja DOIs None sin error
+- ✅ Preserva orden original de papers únicos
+
+---
+
+### 3.3 PostgresLoader
+
+#### SPEC-008: Carga de Papers con Upsert
+
+**GIVEN:** Lista de papers (algunos nuevos, algunos existentes)  
+**WHEN:** Se ejecuta load_papers()  
+**THEN:** Inserta nuevos y actualiza existentes basado en DOI
+
+**EJEMPLO:**
+
+```python
+loader = PostgresLoader()
+
+# Primera carga
+papers1 = [
+    {'doi': '10.1234/test', 'title': 'Original Title', 'citation_count': 10}
+]
+result1 = loader.load_papers(papers1)
+assert result1.inserted_count == 1
+
+# Segunda carga con mismo DOI pero datos actualizados
+papers2 = [
+    {'doi': '10.1234/test', 'title': 'Updated Title', 'citation_count': 15}
+]
+result2 = loader.load_papers(papers2)
+assert result2.updated_count == 1
+assert result2.inserted_count == 0
+
+# Verificar en BD
+cursor = loader.conn.cursor()
+cursor.execute("SELECT title, citation_count FROM papers WHERE doi = '10.1234/test'")
+row = cursor.fetchone()
+assert row[0] == 'Updated Title'
+assert row[1] == 15
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ `ON CONFLICT (doi) DO UPDATE` implementado
+- ✅ Actualiza: title, abstract, citation_count, updated_at
+- ✅ No actualiza: id, created_at
+- ✅ Retorna count de insertados y actualizados
+- ✅ Es idempotente (misma operación = mismo resultado)
+
+---
+
+#### SPEC-009: Transacciones ACID
+
+**GIVEN:** Batch de 100 papers, el paper #50 tiene error  
+**WHEN:** Se ejecuta load_papers()  
+**THEN:** Hace rollback de toda la transacción
+
+**EJEMPLO:**
+
+```python
+loader = PostgresLoader()
+
+papers = [
+    {'doi': f'10.1234/paper{i}', 'title': f'Paper {i}'}
+    for i in range(100)
+]
+# Paper 50 con DOI inválido (muy largo)
+papers[49]['doi'] = 'x' * 300  # Excede VARCHAR(255)
+
+try:
+    loader.load_papers(papers)
+    assert False, "Debería haber lanzado excepción"
+except Exception as e:
+    pass
+
+# Verificar que NO se insertó ninguno
+cursor = loader.conn.cursor()
+cursor.execute("SELECT COUNT(*) FROM papers WHERE doi LIKE '10.1234/paper%'")
+count = cursor.fetchone()[0]
+assert count == 0  # Rollback exitoso
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Usa transacciones explícitas
+- ✅ Commit solo si batch completo exitoso
+- ✅ Rollback automático en cualquier error
+- ✅ No deja datos parciales en BD
+- ✅ Log de error descriptivo
+
+---
+
+#### SPEC-010: Performance de Carga
+
+**GIVEN:** 1000 papers para insertar  
+**WHEN:** Se ejecuta load_papers()  
+**THEN:** Completa en menos de 1 segundo (>1000 inserts/seg)
+
+**EJEMPLO:**
+
+```python
+import time
+
+loader = PostgresLoader()
+papers = [
+    {
+        'doi': f'10.1234/bench{i}',
+        'title': f'Benchmark Paper {i}',
+        'abstract': 'Lorem ipsum ' * 50,
+        'published_date': '2024-01-01'
+    }
+    for i in range(1000)
+]
+
+start = time.time()
+result = loader.load_papers(papers)
+duration = time.time() - start
+
+assert duration < 1.0  # Menos de 1 segundo
+assert result.inserted_count == 1000
+print(f"Throughput: {1000/duration:.0f} papers/segundo")
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Throughput >1000 inserts/segundo
+- ✅ Usa bulk insert (no inserts individuales)
+- ✅ Connection pooling configurado
+- ✅ Índices no ralentizan significativamente (<10% overhead)
+
+---
+
+### 3.4 ETLOrchestrator
+
+#### SPEC-011: Pipeline Completo E2E
+
+**GIVEN:** Configuración de extracción para cs.AI  
+**WHEN:** Se ejecuta run_pipeline()  
+**THEN:** Extrae → Limpia → Carga datos a BD
+
+**EJEMPLO:**
+
+```python
+orchestrator = ETLOrchestrator(
+    extractor=ArxivExtractor(),
+    cleaner=DataCleaner(),
+    loader=PostgresLoader()
+)
+
+result = orchestrator.run_pipeline(
+    categories=['cs.AI'],
+    max_results=50,
+    date_from='2024-01-01',
+    date_to='2024-01-31'
+)
+
+assert result.status == 'SUCCESS'
+assert result.extracted_count == 50
+assert result.valid_count >= 47  # >95% válidos
+assert result.loaded_count >= 47
+assert result.duration_seconds < 60  # <1 min para 50 papers
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Ejecuta las 3 fases: Extract → Transform → Load
+- ✅ Retorna métricas detalladas
+- ✅ Log de progreso en cada fase
+- ✅ Guarda checkpoint cada 100 papers
+- ✅ Continúa desde checkpoint en re-ejecución
+
+---
+
+## 4. Especificación de Base de Datos
+
+### 4.1 Schema Overview
+
+**Base de Datos:** PostgreSQL 15+  
+**Nivel de Normalización:** 3NF (Tercera Forma Normal)  
+**Extensiones:** uuid-ossp
+
+### 4.2 Tablas Principales
+
+#### SPEC-012: Tabla `papers`
+
 ```sql
-INSERT INTO papers (doi, title, abstract, ...)
-VALUES (...)
+CREATE TABLE papers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    doi VARCHAR(255) UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    abstract TEXT,
+    published_date DATE NOT NULL,
+    page_count INTEGER,
+    citation_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_papers_doi ON papers(doi);
+CREATE INDEX idx_papers_published_date ON papers(published_date);
+CREATE INDEX idx_papers_citation_count ON papers(citation_count DESC);
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ DOI es UNIQUE y NOT NULL
+- ✅ Trigger actualiza updated_at en UPDATE
+- ✅ Índice en doi para búsquedas rápidas
+- ✅ Índice en published_date para queries temporales
+- ✅ Índice DESC en citation_count para top cited papers
+
+**EJEMPLO DE USO:**
+
+```sql
+-- Insert con upsert
+INSERT INTO papers (doi, title, abstract, published_date)
+VALUES ('10.1234/example', 'Neural Networks', 'Abstract...', '2024-01-15')
 ON CONFLICT (doi) 
 DO UPDATE SET 
-  title = EXCLUDED.title,
-  updated_at = NOW()
-RETURNING id;
-```
+    title = EXCLUDED.title,
+    updated_at = NOW();
 
-**Manejo de Transacciones**:
-- Batch size: 1000 registros por transacción
-- Rollback automático en caso de error
-- Checkpoint cada 10,000 registros
-
----
-
-### 3.2 Capa de Acceso a Datos (DAL)
-
-#### 3.2.1 Repository Pattern
-
-**Responsabilidad**: Abstracción del acceso a base de datos.
-
-**Interfaces Principales**:
-
-```python
-# Pseudocódigo - NO implementar todavía
-class IPaperRepository:
-    def get_by_id(paper_id: UUID) -> Paper
-    def get_by_doi(doi: str) -> Optional[Paper]
-    def find_by_category(category: str, limit: int) -> List[Paper]
-    def search_by_keywords(keywords: List[str]) -> List[Paper]
-    def save(paper: Paper) -> UUID
-    def update(paper: Paper) -> bool
-    def delete(paper_id: UUID) -> bool
-```
-
-**Implementación con SQLAlchemy**:
-- ORM para mapeo objeto-relacional
-- Query builder para consultas complejas
-- Session management con context managers
-- Connection pooling automático
-
----
-
-#### 3.2.2 Unit of Work Pattern
-
-**Responsabilidad**: Gestión de transacciones y consistencia.
-
-**Componentes**:
-- `UnitOfWork` - Coordinador de transacciones
-- `Session` - Contexto de base de datos (SQLAlchemy)
-- `TransactionScope` - Context manager para ACID
-
-**Ejemplo de Uso (Pseudocódigo)**:
-```python
-# NO implementar - solo diseño
-with UnitOfWork() as uow:
-    paper = uow.papers.get_by_doi(doi)
-    paper.citation_count += 1
-    uow.citations.add(new_citation)
-    uow.commit()  # Atomic
+-- Query de papers más citados de 2024
+SELECT title, citation_count 
+FROM papers 
+WHERE published_date >= '2024-01-01'
+ORDER BY citation_count DESC 
+LIMIT 10;
 ```
 
 ---
 
-### 3.3 Capa de Lógica de Negocio
+#### SPEC-013: Tabla `authors`
 
-#### 3.3.1 ETLOrchestrator (Coordinador)
+```sql
+CREATE TABLE authors (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    orcid VARCHAR(19) UNIQUE,
+    h_index INTEGER,
+    institution VARCHAR(255),
+    country VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW()
+);
 
-**Responsabilidad**: Orquestación del flujo ETL completo.
+CREATE UNIQUE INDEX idx_authors_name ON authors(name);
+CREATE INDEX idx_authors_orcid ON authors(orcid);
+CREATE INDEX idx_authors_country ON authors(country);
+```
 
-**Flujo de Ejecución**:
-1. **Extracción**: Llamar a extractores por categoría
-2. **Transformación**: Aplicar pipeline de limpieza
-3. **Carga**: Insertar en base de datos
-4. **Validación**: Verificar integridad post-carga
-5. **Logging**: Registrar métricas y errores
+**ACCEPTANCE CRITERIA:**
 
-**Métodos Principales**:
-- `run_full_pipeline() -> PipelineResult` - Ejecución completa
-- `run_incremental_update() -> PipelineResult` - Solo nuevos datos
-- `run_category(category: str) -> PipelineResult` - Por categoría específica
-- `rollback_batch(batch_id: str) -> bool` - Revertir carga fallida
-
-**Estrategia de Recuperación**:
-- Checkpoints cada N registros
-- Estado guardado en tabla `etl_execution_log`
-- Reinicio desde último checkpoint exitoso
-
----
-
-#### 3.3.2 AnalyticsService (Agregaciones)
-
-**Responsabilidad**: Cálculos de métricas y agregaciones para BI.
-
-**Métodos Principales**:
-- `calculate_keyword_growth(year_start: int, year_end: int) -> DataFrame`
-- `get_top_cited_papers(category: str, top_n: int) -> List[Paper]`
-- `calculate_author_collaboration_score(author_id: UUID) -> float`
-- `get_geographic_distribution() -> Dict[str, int]`
-- `calculate_correlation(field_x: str, field_y: str) -> float`
-
-**Optimizaciones**:
-- Uso de vistas materializadas en PostgreSQL
-- Caching de resultados con TTL (Time To Live)
-- Pre-cálculo de métricas frecuentes
+- ✅ Name es único (un autor = un registro)
+- ✅ ORCID es opcional pero único si existe
+- ✅ Índice en name para búsquedas por autor
+- ✅ Índice en country para análisis geográfico
 
 ---
 
-### 3.4 Capa de Presentación
+#### SPEC-014: Tabla N:M `papers_authors`
 
-#### 3.4.1 PowerBIConnector (Conector)
+```sql
+CREATE TABLE papers_authors (
+    paper_id UUID REFERENCES papers(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES authors(id) ON DELETE CASCADE,
+    author_order INTEGER NOT NULL,
+    PRIMARY KEY (paper_id, author_id)
+);
 
-**Responsabilidad**: Interfaz entre PostgreSQL y Power BI.
+CREATE INDEX idx_papers_authors_paper ON papers_authors(paper_id);
+CREATE INDEX idx_papers_authors_author ON papers_authors(author_id);
+```
 
-**Conexión**:
-- DirectQuery vs Import Mode (evaluación de trade-offs)
-- Credenciales seguras (variables de entorno)
-- Query folding para optimización
+**ACCEPTANCE CRITERIA:**
 
-**Vistas SQL Optimizadas**:
-- `vw_keyword_trends` - Agregación temporal de keywords
-- `vw_author_metrics` - Métricas de autores (h-index, papers count)
-- `vw_citation_network` - Relaciones de citación
-- `vw_geographic_distribution` - Papers por país/institución
+- ✅ Composite PK evita duplicados
+- ✅ CASCADE delete: eliminar paper elimina relaciones
+- ✅ author_order preserva orden de autoría
+- ✅ Índices en ambas FKs para joins eficientes
 
----
+**EJEMPLO DE USO:**
 
-#### 3.4.2 DAX Measures (Medidas Calculadas)
+```sql
+-- Obtener papers de un autor
+SELECT p.title, pa.author_order
+FROM papers p
+JOIN papers_authors pa ON p.id = pa.paper_id
+JOIN authors a ON pa.author_id = a.id
+WHERE a.name = 'John Doe'
+ORDER BY p.published_date DESC;
 
-**Ejemplos de Medidas Clave**:
-
-```dax
-// NO implementar - solo diseño
-YoY_Growth = 
-    VAR CurrentYearCount = [Total Papers]
-    VAR PreviousYearCount = CALCULATE([Total Papers], DATEADD(Date[Year], -1, YEAR))
-    RETURN DIVIDE(CurrentYearCount - PreviousYearCount, PreviousYearCount)
-
-Average_Citations = AVERAGEX(Papers, Papers[citation_count])
-
-Top_N_Keywords = TOPN(20, Keywords, [Keyword_Frequency], DESC)
+-- Obtener co-autores de un autor
+SELECT DISTINCT a2.name
+FROM authors a1
+JOIN papers_authors pa1 ON a1.id = pa1.author_id
+JOIN papers_authors pa2 ON pa1.paper_id = pa2.paper_id
+JOIN authors a2 ON pa2.author_id = a2.id
+WHERE a1.name = 'John Doe' AND a2.name != 'John Doe';
 ```
 
 ---
 
-### 3.5 Capa de Análisis Avanzado (Futuro)
+#### SPEC-015: Vista Materializada `vw_keyword_trends`
 
-#### 3.5.1 SentimentAnalyzer (NLP)
-
-**Responsabilidad**: Clasificación de sentimiento en abstracts.
-
-**Arquitectura**:
-- **Modelo**: BERT pre-entrenado (HuggingFace)
-- **Pipeline**: Tokenización → Encoding → Inferencia → Postproceso
-- **Batch Processing**: Procesar múltiples abstracts simultáneamente
-
-**Flujo de Datos**:
-```
-Abstract (texto) 
-  → Tokenizer (BERT) 
-  → Model.forward() 
-  → Softmax (probabilities) 
-  → Clasificación (positive/neutral/negative)
-  → Almacenar en BD (sentiment_score)
-```
-
-**Consideraciones**:
-- GPU opcional (acelera 10-20x)
-- Modelo en memoria (evitar recargas)
-- Validación con conjunto anotado manualmente
-
----
-
-#### 3.5.2 TopicModeler (LDA)
-
-**Responsabilidad**: Descubrimiento de tópicos latentes.
-
-**Algoritmo**: Latent Dirichlet Allocation (LDA)
-
-**Pipeline de Entrenamiento**:
-1. **Preprocesamiento**:
-   - Tokenización (spaCy)
-   - Remoción de stopwords
-   - Lemmatización
-   - Construcción de diccionario y corpus
-2. **Entrenamiento**:
-   - Gensim LdaModel
-   - Optimización de número de topics (coherence score)
-   - Parámetros: alpha, beta (Dirichlet priors)
-3. **Evaluación**:
-   - Coherence score (C_v metric)
-   - Perplexity
-   - Topic interpretability (manual)
-4. **Visualización**:
-   - pyLDAvis (HTML interactivo)
-
-**Salidas**:
-- Topics con distribuciones de palabras
-- Asignación de papers a topics (probabilística)
-- Visualización exploratoria
-
----
-
-#### 3.5.3 NetworkAnalyzer (Grafos)
-
-**Responsabilidad**: Análisis de redes de colaboración.
-
-**Representación de Grafo**:
-- **Nodos**: Autores
-- **Edges**: Co-autoría (peso = número de papers compartidos)
-- **Atributos de nodos**: h-index, institución, país
-- **Atributos de edges**: peso, fechas de colaboración
-
-**Métricas de Centralidad**:
-- **Degree Centrality**: Número de colaboradores
-- **Betweenness Centrality**: Autores "puente" entre comunidades
-- **Closeness Centrality**: Proximidad al resto de la red
-- **PageRank**: Influencia ponderada
-
-**Detección de Comunidades**:
-- Algoritmo Louvain (modularidad)
-- Identificación de clusters de investigación
-
-**Visualización**:
-- Exportar a GEXF (Gephi)
-- Layout: ForceAtlas2 o Fruchterman-Reingold
-
----
-
-#### 3.5.4 TrendPredictor (Series Temporales)
-
-**Responsabilidad**: Predicción de tendencias futuras en keywords.
-
-**Modelos a Evaluar**:
-1. **ARIMA**: Auto-Regressive Integrated Moving Average
-   - Bueno para tendencias lineales
-   - Requiere stationarity
-2. **Prophet** (Facebook):
-   - Maneja estacionalidad automáticamente
-   - Robusto a missing data
-3. **LSTM** (Deep Learning):
-   - Captura patrones no-lineales complejos
-   - Requiere más datos
-
-**Pipeline de Predicción**:
-1. Agregar series temporales por keyword
-2. Split train/test (temporal hold-out)
-3. Entrenar modelos candidatos
-4. Validación con MAPE (Mean Absolute Percentage Error)
-5. Seleccionar mejor modelo
-6. Predicción a 2 años
-7. Calcular intervalos de confianza (95%)
-
-**Salidas**:
-- Predicciones puntuales
-- Intervalos de confianza
-- Dashboard con gráficos de tendencias futuras
-
----
-
-## 4. Modelo de Datos
-
-### 4.1 Esquema Entidad-Relación
-
-**Entidades Principales**:
-
-#### 4.1.1 Tabla: `papers`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK, DEFAULT uuid_generate_v4() | Identificador único |
-| `doi` | VARCHAR(255) | UNIQUE, NOT NULL | Digital Object Identifier |
-| `title` | TEXT | NOT NULL | Título del paper |
-| `abstract` | TEXT | NULLABLE | Resumen |
-| `published_date` | DATE | NOT NULL | Fecha de publicación |
-| `page_count` | INTEGER | NULLABLE | Número de páginas |
-| `citation_count` | INTEGER | DEFAULT 0 | Número de citaciones |
-| `sentiment_score` | DECIMAL(3,2) | NULLABLE | Score de sentimiento (-1 a 1) |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | Timestamp de inserción |
-| `updated_at` | TIMESTAMP | DEFAULT NOW() | Timestamp de actualización |
-
-**Índices**:
-- `idx_papers_doi` (UNIQUE)
-- `idx_papers_published_date` (BTREE)
-- `idx_papers_citation_count` (BTREE DESC)
-
----
-
-#### 4.1.2 Tabla: `authors`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK | Identificador único |
-| `name` | VARCHAR(255) | NOT NULL | Nombre completo |
-| `orcid` | VARCHAR(19) | UNIQUE, NULLABLE | ORCID ID |
-| `h_index` | INTEGER | NULLABLE | H-index del autor |
-| `institution` | VARCHAR(255) | NULLABLE | Institución |
-| `country` | VARCHAR(100) | NULLABLE | País |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | Timestamp de inserción |
-
-**Índices**:
-- `idx_authors_orcid` (UNIQUE)
-- `idx_authors_name` (BTREE)
-- `idx_authors_country` (BTREE)
-
----
-
-#### 4.1.3 Tabla: `keywords`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK | Identificador único |
-| `keyword` | VARCHAR(100) | UNIQUE, NOT NULL | Palabra clave normalizada |
-| `category` | VARCHAR(50) | NULLABLE | Categoría (cs.AI, cs.NE, etc.) |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | Timestamp de inserción |
-
-**Índices**:
-- `idx_keywords_keyword` (UNIQUE)
-- `idx_keywords_category` (BTREE)
-
----
-
-#### 4.1.4 Tabla: `categories`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK | Identificador único |
-| `code` | VARCHAR(20) | UNIQUE, NOT NULL | Código de categoría (cs.AI) |
-| `name` | VARCHAR(255) | NOT NULL | Nombre descriptivo |
-| `description` | TEXT | NULLABLE | Descripción de la categoría |
-
----
-
-#### 4.1.5 Tabla: `citations`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK | Identificador único |
-| `citing_paper_id` | UUID | FK → papers(id) | Paper que cita |
-| `cited_paper_id` | UUID | FK → papers(id) | Paper citado |
-| `citation_context` | TEXT | NULLABLE | Contexto de la citación |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | Timestamp de inserción |
-
-**Constraints**:
-- `UNIQUE(citing_paper_id, cited_paper_id)` - Evitar duplicados
-- `CHECK(citing_paper_id != cited_paper_id)` - Evitar auto-citación
-
----
-
-### 4.2 Tablas de Relación (N:M)
-
-#### 4.2.1 Tabla: `papers_authors`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `paper_id` | UUID | FK → papers(id), PK | ID del paper |
-| `author_id` | UUID | FK → authors(id), PK | ID del autor |
-| `author_order` | INTEGER | NOT NULL | Orden del autor (1=primero) |
-
-**Constraints**:
-- `PRIMARY KEY (paper_id, author_id)`
-
----
-
-#### 4.2.2 Tabla: `papers_keywords`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `paper_id` | UUID | FK → papers(id), PK | ID del paper |
-| `keyword_id` | UUID | FK → keywords(id), PK | ID del keyword |
-| `relevance_score` | DECIMAL(3,2) | NULLABLE | Score de relevancia (0-1) |
-
-**Constraints**:
-- `PRIMARY KEY (paper_id, keyword_id)`
-
----
-
-#### 4.2.3 Tabla: `papers_categories`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `paper_id` | UUID | FK → papers(id), PK | ID del paper |
-| `category_id` | UUID | FK → categories(id), PK | ID de la categoría |
-
-**Constraints**:
-- `PRIMARY KEY (paper_id, category_id)`
-
----
-
-### 4.3 Tablas de Auditoría y Control
-
-#### 4.3.1 Tabla: `etl_execution_log`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK | Identificador único |
-| `execution_id` | VARCHAR(50) | UNIQUE | ID de ejecución ETL |
-| `start_time` | TIMESTAMP | NOT NULL | Inicio de ejecución |
-| `end_time` | TIMESTAMP | NULLABLE | Fin de ejecución |
-| `status` | VARCHAR(20) | NOT NULL | RUNNING/SUCCESS/FAILED |
-| `records_extracted` | INTEGER | DEFAULT 0 | Papers extraídos |
-| `records_loaded` | INTEGER | DEFAULT 0 | Papers cargados |
-| `error_message` | TEXT | NULLABLE | Mensaje de error |
-| `checkpoint_data` | JSONB | NULLABLE | Estado de checkpoint |
-
----
-
-#### 4.3.2 Tabla: `api_cache`
-
-| Columna | Tipo | Constraints | Descripción |
-|---------|------|-------------|-------------|
-| `id` | UUID | PK | Identificador único |
-| `cache_key` | VARCHAR(255) | UNIQUE | Key del cache (hash de query) |
-| `response_data` | JSONB | NOT NULL | Respuesta de API |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | Timestamp de cache |
-| `expires_at` | TIMESTAMP | NOT NULL | Expiración del cache |
-
-**Índices**:
-- `idx_api_cache_key` (UNIQUE)
-- `idx_api_cache_expires_at` (BTREE)
-
----
-
-### 4.4 Vistas Materializadas
-
-#### 4.4.1 Vista: `vw_keyword_trends`
-
-**Propósito**: Agregación de keywords por año para análisis de tendencias.
-
-**Definición (Pseudocódigo SQL)**:
 ```sql
 CREATE MATERIALIZED VIEW vw_keyword_trends AS
 SELECT 
     k.keyword,
-    k.category,
     EXTRACT(YEAR FROM p.published_date) AS year,
     COUNT(DISTINCT p.id) AS paper_count,
     AVG(p.citation_count) AS avg_citations
 FROM keywords k
 JOIN papers_keywords pk ON k.id = pk.keyword_id
 JOIN papers p ON pk.paper_id = p.id
-GROUP BY k.keyword, k.category, EXTRACT(YEAR FROM p.published_date)
-ORDER BY year, paper_count DESC;
+GROUP BY k.keyword, EXTRACT(YEAR FROM p.published_date);
+
+CREATE INDEX idx_keyword_trends_keyword ON vw_keyword_trends(keyword);
+CREATE INDEX idx_keyword_trends_year ON vw_keyword_trends(year);
+
+-- Refresh schedule
+REFRESH MATERIALIZED VIEW vw_keyword_trends;
 ```
 
-**Refresh**: Diario (scheduled job)
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Se refresca diariamente (cronjob)
+- ✅ Query <100ms (gracias a materialización)
+- ✅ Índices en keyword y year
+- ✅ Usado por Power BI para dashboard
 
 ---
 
-#### 4.4.2 Vista: `vw_author_metrics`
+### 4.3 Triggers de Auditoría
 
-**Propósito**: Métricas agregadas de autores.
+#### SPEC-016: Trigger `update_papers_timestamp`
 
-**Definición (Pseudocódigo SQL)**:
 ```sql
-CREATE MATERIALIZED VIEW vw_author_metrics AS
-SELECT 
-    a.id AS author_id,
-    a.name,
-    a.institution,
-    a.country,
-    COUNT(DISTINCT p.id) AS paper_count,
-    SUM(p.citation_count) AS total_citations,
-    AVG(p.citation_count) AS avg_citations_per_paper,
-    MAX(p.published_date) AS last_publication_date
-FROM authors a
-JOIN papers_authors pa ON a.id = pa.author_id
-JOIN papers p ON pa.paper_id = p.id
-GROUP BY a.id, a.name, a.institution, a.country;
-```
-
----
-
-### 4.5 Triggers de Auditoría
-
-#### 4.5.1 Trigger: `update_papers_timestamp`
-
-**Propósito**: Actualizar automáticamente `updated_at` en modificaciones.
-
-**Definición (Pseudocódigo SQL)**:
-```sql
-CREATE TRIGGER update_papers_timestamp
-BEFORE UPDATE ON papers
-FOR EACH ROW
-EXECUTE FUNCTION update_timestamp_column();
-
--- Function
-CREATE FUNCTION update_timestamp_column()
+CREATE OR REPLACE FUNCTION update_timestamp_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_papers_timestamp
+BEFORE UPDATE ON papers
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp_column();
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Se ejecuta en cada UPDATE de papers
+- ✅ Actualiza updated_at automáticamente
+- ✅ No afecta performance (<1ms overhead)
+
+**EJEMPLO DE VALIDACIÓN:**
+
+```sql
+-- Insert inicial
+INSERT INTO papers (doi, title, published_date)
+VALUES ('10.test/trigger', 'Test Paper', '2024-01-01');
+
+-- Esperar 1 segundo
+SELECT pg_sleep(1);
+
+-- Update
+UPDATE papers SET title = 'Updated Title' WHERE doi = '10.test/trigger';
+
+-- Verificar que updated_at cambió
+SELECT 
+    created_at, 
+    updated_at,
+    updated_at > created_at AS timestamp_updated
+FROM papers 
+WHERE doi = '10.test/trigger';
+-- Esperado: timestamp_updated = true
 ```
 
 ---
 
-### 4.6 Normalización y Forma Normal
+## 5. Especificación de APIs
 
-**Nivel de Normalización**: 3NF (Tercera Forma Normal)
+### 5.1 ArXiv API
 
-**Justificación**:
-- Elimina redundancia de datos
-- Facilita actualizaciones sin anomalías
-- Mantiene integridad referencial
-- Balance entre normalización y performance
+#### SPEC-017: Extracción por Categoría
 
-**Trade-offs**:
-- ✅ Integridad de datos alta
-- ✅ Fácil de mantener
-- ⚠️ Requires JOINs para queries complejas (mitigado con vistas materializadas)
+**ENDPOINT:** `http://export.arxiv.org/api/query`  
+**METHOD:** GET  
+**FORMAT:** XML (Atom feed)
+
+**REQUEST:**
+
+```http
+GET http://export.arxiv.org/api/query?search_query=cat:cs.AI&start=0&max_results=10&sortBy=submittedDate
+```
+
+**RESPONSE STRUCTURE:**
+
+```xml
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <id>http://arxiv.org/abs/2401.12345</id>
+    <title>Paper Title Here</title>
+    <summary>Abstract text...</summary>
+    <published>2024-01-15T10:30:00Z</published>
+    <author>
+      <name>John Doe</name>
+    </author>
+    <category term="cs.AI"/>
+    <link href="http://arxiv.org/pdf/2401.12345" type="application/pdf"/>
+  </entry>
+</feed>
+```
+
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Response es XML válido
+- ✅ Cada entry tiene: id, title, summary, published, author, category
+- ✅ Parsea autores múltiples
+- ✅ Extrae ArXiv ID del campo <id>
 
 ---
 
-## 5. Interfaces y APIs
+#### SPEC-018: Rate Limiting de ArXiv
 
-### 5.1 Interfaces Externas (APIs Académicas)
+**LÍMITE:** 1 request cada 3 segundos  
+**RECOMENDACIÓN OFICIAL:** https://arxiv.org/help/api/user-manual#rate-limiting
 
-#### 5.1.1 ArXiv API
+**IMPLEMENTACIÓN:**
 
-**Endpoint**: `http://export.arxiv.org/api/query`  
-**Protocolo**: HTTP GET (REST-like)  
-**Formato**: XML (Atom feed)
-
-**Parámetros Clave**:
-- `search_query`: Consulta de búsqueda (cat:cs.AI AND ti:neural)
-- `start`: Offset para paginación
-- `max_results`: Resultados por página (max 2000)
-- `sortBy`: Criterio de orden (relevance, lastUpdatedDate, submittedDate)
-
-**Rate Limiting**: 
-- 1 request cada 3 segundos
-- Max 100,000 resultados por query
-
-**Ejemplo de Request**:
-```
-GET http://export.arxiv.org/api/query?search_query=cat:cs.AI&start=0&max_results=100&sortBy=submittedDate&sortOrder=descending
-```
-
-**Campos Relevantes en Response**:
-- `entry/id` - ArXiv ID
-- `entry/title` - Título
-- `entry/summary` - Abstract
-- `entry/published` - Fecha de publicación
-- `entry/author/name` - Autores
-- `entry/category` - Categorías
-
----
-
-### 5.2 Interfaces Internas
-
-#### 5.2.1 IExtractor (Interfaz)
-
-**Métodos**:
 ```python
-# Pseudocódigo - NO implementar
-class IExtractor(ABC):
-    @abstractmethod
-    def extract(self, query: Query) -> List[Dict]:
-        """Extraer datos desde fuente externa"""
-        pass
+import time
+
+class RateLimiter:
+    def __init__(self, requests_per_second=0.33):  # 1 req/3 seg
+        self.min_interval = 1.0 / requests_per_second
+        self.last_request_time = None
     
-    @abstractmethod
-    def validate_response(self, response: Any) -> bool:
-        """Validar estructura de respuesta"""
-        pass
-    
-    @abstractmethod
-    def parse_to_domain_model(self, raw_data: Dict) -> Paper:
-        """Convertir respuesta raw a modelo de dominio"""
-        pass
+    def wait_if_needed(self):
+        if self.last_request_time is not None:
+            elapsed = time.time() - self.last_request_time
+            if elapsed < self.min_interval:
+                time.sleep(self.min_interval - elapsed)
+        self.last_request_time = time.time()
 ```
 
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Espera mínimo 3 segundos entre requests
+- ✅ Usa monotonic time
+- ✅ Thread-safe (si se usa threading)
+
 ---
 
-#### 5.2.2 ITransformer (Interfaz)
+## 6. Criterios de Calidad
 
-**Métodos**:
+### 6.1 Data Quality Score
+
+**SPEC-019: Data Quality Metrics**
+
 ```python
-# Pseudocódigo - NO implementar
-class ITransformer(ABC):
-    @abstractmethod
-    def transform(self, data: List[Dict]) -> List[Dict]:
-        """Aplicar transformaciones a datos"""
-        pass
-    
-    @abstractmethod
-    def validate(self, data: Dict) -> ValidationResult:
-        """Validar calidad de datos"""
-        pass
+class DataQualityReport:
+    def calculate_score(self, papers):
+        total = len(papers)
+        
+        # Campos completos (peso 40%)
+        complete_fields = sum(
+            1 for p in papers 
+            if p.get('doi') and p.get('title') and p.get('published_date')
+        )
+        completeness_score = (complete_fields / total) * 0.4
+        
+        # DOIs válidos (peso 30%)
+        valid_dois = sum(1 for p in papers if self.validate_doi(p.get('doi')))
+        doi_score = (valid_dois / total) * 0.3
+        
+        # Fechas válidas (peso 20%)
+        valid_dates = sum(1 for p in papers if self.validate_date(p.get('published_date')))
+        date_score = (valid_dates / total) * 0.2
+        
+        # Sin duplicados (peso 10%)
+        unique_dois = len(set(p.get('doi') for p in papers if p.get('doi')))
+        duplicate_score = (unique_dois / total) * 0.1
+        
+        return completeness_score + doi_score + date_score + duplicate_score
 ```
 
+**ACCEPTANCE CRITERIA:**
+
+- ✅ Score >0.95 para considerarse "alta calidad"
+- ✅ Score 0.90-0.95 es aceptable
+- ✅ Score <0.90 requiere investigación
+
 ---
 
-#### 5.2.3 ILoader (Interfaz)
+### 6.2 Performance Benchmarks
 
-**Métodos**:
+#### SPEC-020: Extraction Performance
+
+| Métrica | Objetivo | Medición |
+|---------|----------|----------|
+| **Extraction Rate** | >5000 papers/hora | `papers_extracted / (duration_sec / 3600)` |
+| **API Success Rate** | >99% | `successful_requests / total_requests` |
+| **Cache Hit Rate** | >80% (en re-runs) | `cache_hits / total_requests` |
+
+#### SPEC-021: Transformation Performance
+
+| Métrica | Objetivo | Medición |
+|---------|----------|----------|
+| **Processing Rate** | >10,000 papers en <5 min | Time to clean 10K papers |
+| **Validation Rate** | >95% pass | `valid_papers / total_papers` |
+| **Deduplication** | <3% duplicates found | `duplicates / total_papers` |
+
+#### SPEC-022: Loading Performance
+
+| Métrica | Objetivo | Medición |
+|---------|----------|----------|
+| **Insert Throughput** | >1000 inserts/seg | Papers loaded per second |
+| **Upsert Ratio** | Track inserts vs updates | `updates / (inserts + updates)` |
+| **Transaction Time** | <1 seg per 1000 papers | Time per batch commit |
+
+---
+
+## 7. Ejemplos de Uso
+
+### 7.1 Uso Completo del Sistema
+
 ```python
-# Pseudocódigo - NO implementar
-class ILoader(ABC):
-    @abstractmethod
-    def load(self, data: List[Dict]) -> LoadResult:
-        """Cargar datos a destino"""
-        pass
-    
-    @abstractmethod
-    def rollback(self, batch_id: str) -> bool:
-        """Revertir carga fallida"""
-        pass
+from src.extractors.arxiv_client import ArxivExtractor
+from src.transformers.cleaner import DataCleaner
+from src.loaders.postgres_loader import PostgresLoader
+from datetime import date
+
+# 1. Configurar componentes
+extractor = ArxivExtractor(output_dir='data/raw/arxiv')
+cleaner = DataCleaner()
+loader = PostgresLoader()
+
+# 2. Extraer datos de ArXiv
+print("Extrayendo papers de ArXiv...")
+raw_papers = extractor.extract(
+    categories=['cs.AI', 'cs.NE', 'cs.LG'],
+    date_from=date(2024, 1, 1),
+    date_to=date(2024, 12, 31),
+    max_results=100  # Por categoría
+)
+print(f"✅ Extraídos: {len(raw_papers)} papers")
+
+# 3. Transformar datos
+print("Limpiando y validando datos...")
+cleaned_papers = cleaner.transform(raw_papers)
+valid_papers, invalid_papers = cleaner.validate(cleaned_papers)
+
+print(f"✅ Válidos: {len(valid_papers)}")
+print(f"❌ Inválidos: {len(invalid_papers)}")
+
+# 4. Cargar a base de datos
+print("Cargando a PostgreSQL...")
+result = loader.bulk_load(valid_papers)
+print(f"✅ Cargados: {result.loaded_count} papers")
+print(f"🔄 Actualizados: {result.updated_count} papers")
+
+loader.close()
+print("Pipeline completado exitosamente!")
 ```
 
----
+### 7.2 Uso Individual de Componentes
 
-### 5.3 Data Transfer Objects (DTOs)
+#### Extractor
 
-#### 5.3.1 PaperDTO
-
-**Propósito**: Transferencia de datos de papers entre capas.
-
-**Estructura**:
 ```python
-# Pseudocódigo - NO implementar
-@dataclass
-class PaperDTO:
-    doi: str
-    title: str
-    abstract: Optional[str]
-    published_date: date
-    authors: List[str]
-    keywords: List[str]
-    categories: List[str]
-    citation_count: int = 0
-    page_count: Optional[int] = None
-    external_ids: Dict[str, str] = field(default_factory=dict)
-```
+from src.extractors.arxiv_client import ArxivExtractor
 
----
-
-#### 5.3.2 QueryDTO
-
-**Propósito**: Encapsular parámetros de búsqueda.
-
-**Estructura**:
-```python
-# Pseudocódigo - NO implementar
-@dataclass
-class QueryDTO:
-    categories: List[str]
-    keywords: List[str]
-    date_range: Tuple[date, date]
-    max_results: int = 1000
-    sort_by: str = 'relevance'
-```
-
----
-
-## 6. Patrones de Diseño
-
-### 6.1 Patrones Creacionales
-
-#### 6.1.1 Factory Pattern
-
-**Uso**: Creación de extractores según tipo de fuente.
-
-**Componentes**:
-- `ExtractorFactory`: Clase factory
-- `ExtractorType`: Enum (ARXIV)
-
-**Ventajas**:
-- Encapsulación de lógica de creación
-- Fácil agregar nuevos extractores
-- Configuración centralizada
-
----
-
-#### 6.1.2 Builder Pattern
-
-**Uso**: Construcción de queries complejas.
-
-**Componentes**:
-- `QueryBuilder`: Builder con fluent interface
-- `Query`: Objeto inmutable resultante
-
-**Ejemplo de Uso (Pseudocódigo)**:
-```python
-# NO implementar
-query = (QueryBuilder()
-    .with_categories(['cs.AI', 'cs.NE'])
-    .with_keywords(['neural', 'genetic'])
-    .with_date_range(date(2020, 1, 1), date(2024, 12, 31))
-    .with_max_results(5000)
-    .build())
-```
-
----
-
-### 6.2 Patrones Estructurales
-
-#### 6.2.1 Adapter Pattern
-
-**Uso**: Adaptar respuestas de diferentes APIs a formato común.
-
-**Componentes**:
-- `IAPIAdapter`: Interfaz común
-- `ArxivAdapter`: Implementación para ArXiv API
-
-**Ventajas**:
-- Interfaz uniforme para diferentes APIs
-- Desacopla lógica de negocio de detalles de APIs
-- Facilita testing (mock adapters)
-
----
-
-#### 6.2.2 Decorator Pattern
-
-**Uso**: Agregar funcionalidad a extractores (logging, caching, retry).
-
-**Componentes**:
-- `BaseExtractor`: Componente base
-- `LoggingDecorator`: Agrega logging
-- `CachingDecorator`: Agrega caching
-- `RetryDecorator`: Agrega retry logic
-
-**Ejemplo (Pseudocódigo)**:
-```python
-# NO implementar
 extractor = ArxivExtractor()
-extractor = LoggingDecorator(extractor)
-extractor = CachingDecorator(extractor)
-extractor = RetryDecorator(extractor, max_retries=3)
+papers = extractor.extract(
+    categories=['cs.AI'],
+    max_results=50
+)
+
+for paper in papers[:3]:
+    print(f"Title: {paper['title']}")
+    print(f"Authors: {', '.join(paper['authors'])}")
+    print(f"Date: {paper['published_date']}")
+    print("---")
 ```
 
----
+#### Cleaner
 
-### 6.3 Patrones de Comportamiento
-
-#### 6.3.1 Strategy Pattern
-
-**Uso**: Intercambiar algoritmos de deduplicación.
-
-**Componentes**:
-- `IDeduplicationStrategy`: Interfaz
-- `DOIDeduplication`: Por DOI exacto
-- `FuzzyTitleDeduplication`: Por similitud de título
-- `CompositeDeduplication`: Combinación de estrategias
-
----
-
-#### 6.3.2 Observer Pattern
-
-**Uso**: Notificaciones de progreso de ETL.
-
-**Componentes**:
-- `ETLObservable`: Subject (proceso ETL)
-- `IETLObserver`: Interfaz de observer
-- `ConsoleProgressObserver`: Log a consola
-- `DatabaseProgressObserver`: Log a BD
-
-**Eventos**:
-- `on_extraction_start()`
-- `on_extraction_progress(processed: int, total: int)`
-- `on_extraction_complete(result: ExtractionResult)`
-- `on_error(error: Exception)`
-
----
-
-#### 6.3.3 Chain of Responsibility
-
-**Uso**: Pipeline de transformación de datos.
-
-**Componentes**:
-- `ITransformationHandler`: Interfaz con `handle()`
-- `TextCleaningHandler`: Limpieza de texto
-- `DateNormalizationHandler`: Normalización de fechas
-- `DOIValidationHandler`: Validación de DOIs
-- `DeduplicationHandler`: Eliminación de duplicados
-
-**Flujo**:
-```
-Data → TextCleaning → DateNormalization → DOIValidation → Deduplication → Cleaned Data
-```
-
----
-
-#### 6.3.4 Template Method
-
-**Uso**: Plantilla para proceso ETL.
-
-**Componentes**:
-- `ETLTemplate`: Clase abstracta con template method `run()`
-- Métodos abstractos: `extract()`, `transform()`, `load()`
-- Métodos hooks: `pre_extract()`, `post_load()`, `on_error()`
-
-**Algoritmo**:
 ```python
-# Pseudocódigo - NO implementar
-def run(self):
-    self.pre_extract()
-    data = self.extract()
-    self.post_extract(data)
-    
-    self.pre_transform()
-    cleaned_data = self.transform(data)
-    self.post_transform(cleaned_data)
-    
-    self.pre_load()
-    result = self.load(cleaned_data)
-    self.post_load(result)
-    
-    return result
+from src.transformers.cleaner import DataCleaner
+
+cleaner = DataCleaner()
+
+# Limpiar texto
+text = "Neural    Networks\nand Deep  Learning"
+clean = cleaner.clean_text(text)
+print(clean)  # "Neural Networks and Deep Learning"
+
+# Validar DOI
+doi = "10.1234/example.paper"
+is_valid = cleaner.validate_doi(doi)
+print(f"DOI válido: {is_valid}")  # True
+
+# Normalizar fecha
+date_str = "2024/01/15"
+iso_date = cleaner.normalize_date(date_str)
+print(iso_date)  # "2024-01-15"
 ```
 
----
+#### Loader
 
-## 7. Consideraciones de Seguridad
-
-### 7.1 Gestión de Credenciales
-
-#### 7.1.1 Variables de Entorno
-
-**Método**: Archivo `.env` con `python-dotenv`
-
-**Buenas Prácticas**:
-- ❌ **NUNCA** commitear `.env` a Git (usar `.gitignore`)
-- ✅ Proveer `.env.example` con template
-- ✅ Validar presencia de variables al inicio
-- ✅ Usar nombres descriptivos (prefijo `DB_`, `API_`, etc.)
-
-**Ejemplo `.env`**:
-```bash
-# Database
-DB_HOST=db.xxxxx.supabase.co
-DB_PORT=5432
-DB_NAME=postgres
-DB_USER=postgres
-DB_PASSWORD=your_secure_password_here
-```
-
----
-
-#### 7.1.2 Conexión a Base de Datos
-
-**Opciones**:
-1. **Connection String Completa** (menos seguro):
-   ```
-   postgresql://user:password@host:port/dbname
-   ```
-2. **Componentes Separados** (recomendado):
-   ```python
-   host=os.getenv('DB_HOST')
-   port=os.getenv('DB_PORT')
-   ...
-   ```
-
-**Buenas Prácticas**:
-- Usar SSL/TLS para conexiones (sslmode='require')
-- Credentials con privilegios mínimos necesarios
-- Rotar passwords periódicamente
-- Auditar accesos a base de datos
-
----
-
-### 7.2 Validación de Entrada
-
-#### 7.2.1 Validación de Datos Externos
-
-**Riesgos**:
-- Inyección SQL (si se construyen queries dinámicas)
-- XSS (si se muestran datos sin sanitizar)
-- Data poisoning (datos maliciosos de APIs)
-
-**Mitigaciones**:
-- ✅ Usar ORM (SQLAlchemy) - previene SQL injection
-- ✅ Validar tipos de datos con Pydantic
-- ✅ Sanitizar strings antes de almacenar
-- ✅ Limitar longitud de campos (evitar overflow)
-- ✅ Validar formatos (DOI, ORCID con regex)
-
----
-
-#### 7.2.2 Rate Limiting y Throttling
-
-**Propósito**: Evitar abuso y respetar límites de APIs.
-
-**Implementación**:
-- Token bucket algorithm
-- Sliding window log
-- Sleep dinámico según headers de respuesta (`X-RateLimit-Remaining`)
-
-**Estrategia**:
 ```python
-# Pseudocódigo - NO implementar
-if rate_limiter.is_exceeded():
-    sleep_time = rate_limiter.calculate_wait_time()
-    logger.warning(f"Rate limit reached, sleeping {sleep_time}s")
-    time.sleep(sleep_time)
+from src.loaders.postgres_loader import PostgresLoader
+
+loader = PostgresLoader()
+
+papers = [
+    {
+        'doi': '10.1234/paper1',
+        'title': 'Example Paper',
+        'abstract': 'This is an example...',
+        'published_date': '2024-01-15',
+        'authors': ['John Doe', 'Jane Smith']
+    }
+]
+
+result = loader.bulk_load(papers)
+print(f"Loaded: {result.loaded_count}")
+loader.close()
 ```
 
 ---
 
-### 7.3 Seguridad de Datos
+## 8. Testing Strategy
 
-#### 7.3.1 Encriptación
+### 8.1 Unit Tests
 
-**En Tránsito**:
-- HTTPS para todas las APIs externas
-- TLS 1.2+ para conexiones a PostgreSQL
+**Ubicación:** `tests/unit/`  
+**Framework:** pytest  
+**Coverage:** >80%
 
-**En Reposo**:
-- Supabase ofrece encriptación at-rest por defecto
-- Campos sensibles (si existen) con encriptación adicional
-
----
-
-#### 7.3.2 Backups y Recuperación
-
-**Estrategia de Backups**:
-- **Frecuencia**: Diaria (automática en Supabase)
-- **Retención**: 30 días
-- **Tipo**: Full backup + incremental
-
-**Plan de Recuperación**:
-1. Identificar punto de recuperación (RPO: Recovery Point Objective)
-2. Restaurar desde backup más reciente
-3. Aplicar logs transaccionales (si disponibles)
-4. Verificar integridad de datos
-5. Reiniciar servicios
-
-**RTO (Recovery Time Objective)**: <4 horas
-
----
-
-### 7.4 Auditoría y Logging
-
-#### 7.4.1 Niveles de Logging
-
-**Niveles**:
-- `DEBUG`: Información detallada (solo desarrollo)
-- `INFO`: Eventos normales (inicio/fin de procesos)
-- `WARNING`: Situaciones inesperadas pero recuperables
-- `ERROR`: Errores que impiden operación específica
-- `CRITICAL`: Errores que impiden funcionamiento del sistema
-
-**Qué Loggear**:
-- ✅ Inicio/fin de procesos ETL
-- ✅ Errores de APIs (status code, mensaje)
-- ✅ Validaciones fallidas (con detalles)
-- ✅ Métricas de performance (tiempo, registros procesados)
-- ❌ **NUNCA** loggear passwords o API keys
-
----
-
-#### 7.4.2 Formato de Logs
-
-**Formato**: JSON estructurado (facilita parsing y análisis)
-
-**Campos Obligatorios**:
-- `timestamp`: ISO 8601
-- `level`: DEBUG/INFO/WARNING/ERROR/CRITICAL
-- `message`: Mensaje descriptivo
-- `module`: Módulo que genera el log
-- `execution_id`: ID de ejecución ETL (correlación)
-
-**Ejemplo**:
-```json
-{
-  "timestamp": "2026-01-26T15:30:45.123Z",
-  "level": "INFO",
-  "message": "ArXiv extraction completed",
-  "module": "extractors.arxiv_client",
-  "execution_id": "etl-20260126-153045",
-  "metadata": {
-    "papers_extracted": 1523,
-    "duration_seconds": 187.5
-  }
-}
-```
-
----
-
-## 8. Estrategia de Testing
-
-### 8.1 Pirámide de Testing
-
-```
-        ┌─────────────┐
-        │  E2E Tests  │  10%
-        │   (Manual)  │
-        └─────────────┘
-       ┌───────────────┐
-       │Integration Tests│ 20%
-       │  (APIs, DB)     │
-       └───────────────┘
-      ┌──────────────────┐
-      │   Unit Tests     │ 70%
-      │ (Componentes)    │
-      └──────────────────┘
-```
-
----
-
-### 8.2 Unit Tests
-
-**Framework**: `pytest`
-
-**Cobertura Objetivo**: >80%
-
-**Componentes a Testear**:
-- Extractores (con mocks de APIs)
-- Transformadores (limpieza, validación)
-- Validadores (DOI, fechas, emails)
-- Utilities (helpers, formatters)
-
-**Ejemplo de Test (Pseudocódigo)**:
 ```python
-# NO implementar - solo diseño
-def test_doi_validator_valid():
-    validator = DOIValidator()
-    assert validator.validate("10.1234/example.doi") == True
+# tests/unit/test_data_cleaner.py
 
-def test_doi_validator_invalid():
-    validator = DOIValidator()
-    assert validator.validate("invalid-doi") == False
-    
-def test_date_normalizer_iso_format():
-    normalizer = DateNormalizer()
-    result = normalizer.normalize("2024-01-15")
-    assert result == date(2024, 1, 15)
+import pytest
+from src.transformers.cleaner import DataCleaner
+
+@pytest.fixture
+def cleaner():
+    return DataCleaner()
+
+def test_clean_text_removes_multiple_spaces(cleaner):
+    input_text = "Neural    Networks"
+    expected = "Neural Networks"
+    assert cleaner.clean_text(input_text) == expected
+
+def test_validate_doi_valid(cleaner):
+    assert cleaner.validate_doi("10.1234/test") == True
+
+def test_validate_doi_invalid(cleaner):
+    assert cleaner.validate_doi("invalid") == False
+
+def test_normalize_date_iso_format(cleaner):
+    assert cleaner.normalize_date("2024-01-15") == "2024-01-15"
+
+def test_normalize_date_slash_format(cleaner):
+    assert cleaner.normalize_date("2024/01/15") == "2024-01-15"
 ```
 
-**Buenas Prácticas**:
-- Tests independientes (no dependen de orden)
-- Nombres descriptivos (test_<component>_<scenario>_<expected>)
-- Usar fixtures para setup/teardown
-- Mock de dependencias externas
+### 8.2 Integration Tests
 
----
+**Ubicación:** `tests/integration/`  
+**Requiere:** Docker (PostgreSQL test instance)
 
-### 8.3 Integration Tests
-
-**Framework**: `pytest` + `pytest-docker`
-
-**Alcance**:
-- Conexión a PostgreSQL (test database)
-- Flujo completo de extractor → transformer → loader
-- Vistas SQL y queries complejas
-
-**Requisitos**:
-- Base de datos de test (separada de producción)
-- Docker compose para servicios (PostgreSQL, etc.)
-- Reset de estado entre tests
-
-**Ejemplo (Pseudocódigo)**:
 ```python
-# NO implementar - solo diseño
-def test_etl_pipeline_integration(test_db):
-    # Arrange
-    extractor = ArxivExtractor()
-    transformer = DataCleaner()
-    loader = PostgresLoader(test_db)
+# tests/integration/test_etl_pipeline.py
+
+import pytest
+from src.orchestrator import ETLOrchestrator
+
+@pytest.fixture
+def test_db():
+    # Setup: Create test DB, run migrations
+    db = create_test_database()
+    yield db
+    # Teardown: Drop test DB
+    db.drop()
+
+def test_full_etl_pipeline(test_db):
+    orchestrator = ETLOrchestrator(db=test_db)
     
-    # Act
-    raw_data = extractor.extract(sample_query)
-    cleaned_data = transformer.transform(raw_data)
-    result = loader.load(cleaned_data)
+    result = orchestrator.run_pipeline(
+        categories=['cs.AI'],
+        max_results=10
+    )
     
-    # Assert
-    assert result.success == True
-    assert result.loaded_count == len(cleaned_data)
+    assert result.status == 'SUCCESS'
+    assert result.loaded_count > 0
     
     # Verify in DB
     papers = test_db.query("SELECT * FROM papers")
@@ -1397,624 +1058,171 @@ def test_etl_pipeline_integration(test_db):
 
 ---
 
-### 8.4 End-to-End Tests
+## 9. Variables de Entorno
 
-**Alcance**: Flujo completo de usuario (manual o automatizado)
+### 9.1 Archivo `.env`
 
-**Escenarios**:
-1. **Escenario 1**: Extracción de papers → Visualización en Power BI
-   - Ejecutar ETL completo
-   - Verificar que datos aparecen en dashboard
-   - Validar métricas calculadas
+```bash
+# Database (Supabase PostgreSQL)
+DB_HOST=db.xxxxx.supabase.co
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=your_secure_password_here
 
-2. **Escenario 2**: Actualización incremental
-   - Ejecutar ETL con nuevos datos
-   - Verificar que solo se agregan nuevos papers
-   - Validar que no hay duplicados
+# Supabase (opcional, para features extras)
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_KEY=your_anon_key_here
 
-**Automatización**: Considerar Selenium/Playwright para Power BI (difícil, prioridad baja)
+# Application Config
+LOG_LEVEL=INFO
+BATCH_SIZE=1000
+MAX_WORKERS=4
+CACHE_TTL_HOURS=24
+```
 
----
+### 9.2 Validación de Variables
 
-### 8.5 Test Data Management
-
-#### 8.5.1 Fixtures
-
-**Propósito**: Datos de prueba reutilizables.
-
-**Ubicación**: `tests/fixtures/`
-
-**Tipos**:
-- `sample_arxiv_response.json` - Respuesta de ArXiv API
-- `sample_papers.json` - Papers de ejemplo
-- `sample_authors.json` - Autores de ejemplo
-
----
-
-#### 8.5.2 Database Seeding
-
-**Propósito**: Poblar DB de test con datos realistas.
-
-**Estrategia**:
-- Script de seeding (`tests/seed_test_db.py`)
-- Ejecutar antes de integration tests
-- Incluir casos edge (duplicados, nulls, etc.)
-
----
-
-### 8.6 Mocking Strategy
-
-**Principio**: Mockear dependencias externas, no lógica interna.
-
-**Qué Mockear**:
-- ✅ Llamadas a APIs externas (requests)
-- ✅ Conexiones a base de datos (en unit tests)
-- ✅ Filesystem (si se usa)
-- ❌ Lógica de negocio (no mockear lo que estás testeando)
-
-**Herramientas**:
-- `unittest.mock` (built-in)
-- `pytest-mock` (plugin de pytest)
-- `responses` (para mockear requests HTTP)
-
-**Ejemplo (Pseudocódigo)**:
 ```python
-# NO implementar - solo diseño
-@patch('requests.get')
-def test_arxiv_extractor_calls_api(mock_get):
-    # Arrange
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.text = load_fixture('sample_arxiv_response.xml')
-    mock_get.return_value = mock_response
+# src/utils/config.py
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    # Database
+    DB_HOST = os.getenv('DB_HOST')
+    DB_PORT = int(os.getenv('DB_PORT', 5432))
+    DB_NAME = os.getenv('DB_NAME')
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
     
-    extractor = ArxivExtractor()
+    # App
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    BATCH_SIZE = int(os.getenv('BATCH_SIZE', 1000))
     
-    # Act
-    result = extractor.extract(Query(categories=['cs.AI']))
-    
-    # Assert
-    mock_get.assert_called_once()
-    assert len(result) > 0
+    @classmethod
+    def validate(cls):
+        required = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD']
+        missing = [var for var in required if not getattr(cls, var)]
+        
+        if missing:
+            raise ValueError(f"Missing required env vars: {', '.join(missing)}")
+
+# Al inicio de la aplicación
+Config.validate()
 ```
 
 ---
 
-## 9. Monitoreo y Observabilidad
-
-### 9.1 Métricas Clave (KPIs)
-
-#### 9.1.1 Métricas de ETL
-
-| Métrica | Descripción | Objetivo |
-|---------|-------------|----------|
-| **Extraction Rate** | Papers extraídos por hora | >5000/hora |
-| **Success Rate** | % de requests exitosos | >99% |
-| **Data Quality Score** | % de registros válidos | >95% |
-| **Load Throughput** | Inserts por segundo | >1000/seg |
-| **Pipeline Duration** | Tiempo total de ETL | <2 horas (10K papers) |
-| **Duplicate Rate** | % de duplicados detectados | Monitoreado |
-
----
-
-#### 9.1.2 Métricas de Sistema
-
-| Métrica | Descripción | Umbral de Alerta |
-|---------|-------------|------------------|
-| **Database Connections** | Conexiones activas | >80% del pool |
-| **Query Performance** | Tiempo de queries lentas | >500ms |
-| **Disk Usage** | Espacio usado en disco | >80% |
-| **API Rate Limit Usage** | % de rate limit usado | >90% |
-
----
-
-### 9.2 Logging Centralizado
-
-#### 9.2.1 Estrategia
-
-**Destinos de Logs**:
-1. **Consola** (desarrollo): Logs estructurados con colores
-2. **Archivo** (producción): Rotación diaria, retención 30 días
-3. **Base de Datos** (producción): Eventos críticos en tabla `etl_execution_log`
-
-**Rotación de Archivos**:
-- Rotación diaria a medianoche
-- Formato: `etl-YYYY-MM-DD.log`
-- Compresión de logs >7 días
-- Eliminación de logs >30 días
-
----
-
-#### 9.2.2 Estructura de Logs
-
-**Logger Hierarchy**:
-```
-root
-├── extractors
-│   └── arxiv
-├── transformers
-│   ├── cleaner
-│   └── validator
-├── loaders
-│   └── postgres
-└── utils
-    ├── cache
-    └── retry
-```
-
-**Configuración por Ambiente**:
-- **Development**: DEBUG level, consola con colores
-- **Production**: INFO level, archivo + BD
-
----
-
-### 9.3 Alertas y Notificaciones
-
-#### 9.3.1 Condiciones de Alerta
-
-| Alerta | Condición | Severidad | Acción |
-|--------|-----------|-----------|--------|
-| **ETL Failure** | Pipeline falla completamente | CRITICAL | Email inmediato |
-| **Low Success Rate** | <95% de requests exitosos | HIGH | Investigar APIs |
-| **High Error Rate** | >5% de errores de validación | MEDIUM | Revisar datos |
-| **Slow Query** | Query >2 segundos | LOW | Optimizar query |
-| **Disk Space** | >90% usado | HIGH | Limpiar/expandir |
-
----
-
-#### 9.3.2 Canales de Notificación
-
-**Opciones** (según implementación):
-- Email (SMTP)
-- Slack/Discord webhooks
-- SMS (Twilio) para críticos
-- Dashboard de monitoreo (Grafana, si se implementa)
-
----
-
-### 9.4 Health Checks
-
-#### 9.4.1 Database Health Check
-
-**Verificaciones**:
-- Conectividad a PostgreSQL
-- Latencia de queries (<100ms para query simple)
-- Número de conexiones activas
-- Espacio disponible en disco
-
-**Frecuencia**: Cada 5 minutos
-
----
-
-#### 9.4.2 ETL Process Health Check
-
-**Verificaciones**:
-- Última ejecución exitosa (<24 horas)
-- Progreso actual (si está corriendo)
-- Tasa de errores en ventana de 1 hora
-
-**Frecuencia**: Cada 15 minutos
-
----
-
-### 9.5 Performance Monitoring
-
-#### 9.5.1 Profiling
-
-**Herramientas**:
-- `cProfile` (built-in Python)
-- `py-spy` (sampling profiler)
-- `memory_profiler` (uso de memoria)
-
-**Cuándo Usar**:
-- Durante desarrollo para identificar bottlenecks
-- Si se observa degradación de performance en producción
-- Antes de optimizaciones mayores (establecer baseline)
-
----
-
-#### 9.5.2 Query Performance
-
-**Herramientas**:
-- PostgreSQL `EXPLAIN ANALYZE`
-- `pg_stat_statements` extension
-- Slow query log
-
-**Optimizaciones**:
-- Crear índices en columnas frecuentemente filtradas
-- Usar vistas materializadas para agregaciones
-- Particionar tablas grandes (si >1M rows)
-
----
-
-## 10. Diagramas Técnicos
-
-### 10.1 Diagrama de Arquitectura de Alto Nivel
+## 10. Estructura del Proyecto
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                         Power BI Desktop                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌──────────────┐             │
-│  │  Keyword    │  │ Geographic  │  │  Citation    │             │
-│  │  Trends     │  │    Map      │  │  Analysis    │             │
-│  └─────────────┘  └─────────────┘  └──────────────┘             │
-└────────────────────────────┬─────────────────────────────────────┘
-                             │ DirectQuery / Import
-                             ↓
-┌──────────────────────────────────────────────────────────────────┐
-│                  PostgreSQL (Supabase)                            │
-│  ┌────────┐ ┌────────┐ ┌──────────┐ ┌──────────┐                │
-│  │ papers │ │authors │ │ keywords │ │ categories│                │
-│  └────────┘ └────────┘ └──────────┘ └──────────┘                │
-│  ┌──────────────────┐  ┌─────────────────┐                      │
-│  │ Materialized Views│  │ Audit Tables   │                      │
-│  └──────────────────┘  └─────────────────┘                      │
-└────────────────────────────┬─────────────────────────────────────┘
-                             ↑ Bulk Insert (COPY)
-                             │
-┌──────────────────────────────────────────────────────────────────┐
-│                      ETL Orchestrator                             │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Extract       →    Transform      →      Load            │   │
-│  │  ┌─────────┐        ┌─────────┐          ┌──────────┐    │   │
-│  │  │Extractors│   →   │Cleaners │    →    │PostgreSQL│    │   │
-│  │  └─────────┘        └─────────┘          │ Loader   │    │   │
-│  │  ┌─────────┐        ┌──────────┐         └──────────┘    │   │
-│  │  │ Cache   │        │Validators│                          │   │
-│  │  └─────────┘        └──────────┘                          │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└────────────────────────────┬─────────────────────────────────────┘
-                             ↓ HTTP Requests (REST)
-┌──────────────────────────────────────────────────────────────────┐
-│                     External APIs                                 │
-│  ┌──────────────┐                                                 │
-│  │  ArXiv API   │                                                 │
-│  │  (XML/Atom)  │                                                 │
-│  └──────────────┘                                                 │
-└──────────────────────────────────────────────────────────────────┘
+analisis_bibliometrico/
+├── data/
+│   ├── raw/
+│   │   └── arxiv/           # JSON responses de ArXiv API
+│   ├── processed/           # Datos limpios
+│   └── sql/                 # Scripts DDL
+│       ├── 01_create_tables.sql
+│       ├── 02_create_indexes.sql
+│       ├── 03_create_triggers.sql
+│       └── 04_create_views.sql
+├── src/
+│   ├── extractors/
+│   │   └── arxiv_client.py
+│   ├── transformers/
+│   │   ├── cleaner.py
+│   │   └── validator.py
+│   ├── loaders/
+│   │   └── postgres_loader.py
+│   ├── utils/
+│   │   ├── logger.py
+│   │   ├── config.py
+│   │   └── rate_limiter.py
+│   └── orchestrator.py
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── fixtures/
+├── notebooks/               # Jupyter notebooks experimentales
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── pytest.ini
+├── PRD.md
+├── SDD.md                   # Este documento
+└── README.md
 ```
 
 ---
 
-### 10.2 Diagrama de Flujo ETL
+## 11. Checklist de Implementación
 
-```
-┌─────────────┐
-│   START     │
-└──────┬──────┘
-       ↓
-┌──────────────────────┐
-│ Load Configuration   │ (DB credentials, API keys, query params)
-└──────┬───────────────┘
-       ↓
-┌──────────────────────┐
-│ Initialize Services  │ (Extractors, Transformers, Loaders)
-└──────┬───────────────┘
-       ↓
-┌──────────────────────┐
-│ For Each Category    │◄──────────────────┐
-└──────┬───────────────┘                   │
-       ↓                                    │
-┌──────────────────────┐                   │
-│  EXTRACT             │                   │
-│  └─ ArXiv API        │                   │
-└──────┬───────────────┘                   │
-       ↓                                    │
-┌──────────────────────┐                   │
-│ Cache Raw Response   │ (JSON files)      │
-└──────┬───────────────┘                   │
-       ↓                                    │
-┌──────────────────────┐                   │
-│  TRANSFORM           │                   │
-│  ├─ Clean Text       │                   │
-│  ├─ Normalize Dates  │                   │
-│  ├─ Validate DOIs    │                   │
-│  └─ Deduplicate      │                   │
-└──────┬───────────────┘                   │
-       ↓                                    │
-    [Valid?]                                │
-       ├─ No → Log Error → Continue ────────┘
-       ↓ Yes
-┌──────────────────────┐
-│  LOAD                │
-│  ├─ Upsert Papers    │
-│  ├─ Insert Authors   │
-│  ├─ Insert Keywords  │
-│  └─ Link Relationships│
-└──────┬───────────────┘
-       ↓
-┌──────────────────────┐
-│ Create Checkpoint    │
-└──────┬───────────────┘
-       ↓
-    [More Categories?]
-       ├─ Yes ──────────────────────────────┘
-       ↓ No
-┌──────────────────────┐
-│ Refresh Materialized │
-│ Views                │
-└──────┬───────────────┘
-       ↓
-┌──────────────────────┐
-│ Log Final Metrics    │ (duration, counts, errors)
-└──────┬───────────────┘
-       ↓
-┌──────────────────────┐
-│ Send Notifications   │ (if errors or completion)
-└──────┬───────────────┘
-       ↓
-┌─────────────┐
-│     END     │
-└─────────────┘
-```
+### Fase 1: Setup
+
+- [ ] Crear estructura de carpetas
+- [ ] Configurar `.env` con credenciales de Supabase
+- [ ] Crear `requirements.txt` con dependencias
+- [ ] Setup de Git y `.gitignore`
+- [ ] Ejecutar scripts DDL en Supabase
+
+### Fase 2: ETL Core
+
+- [ ] Implementar `ArxivExtractor` (SPEC-001, SPEC-002, SPEC-003)
+- [ ] Implementar `DataCleaner` (SPEC-004, SPEC-005, SPEC-006, SPEC-007)
+- [ ] Implementar `PostgresLoader` (SPEC-008, SPEC-009, SPEC-010)
+- [ ] Implementar `ETLOrchestrator` (SPEC-011)
+- [ ] Tests unitarios (>80% coverage)
+
+### Fase 3: Testing
+
+- [ ] Setup de test database (Docker)
+- [ ] Integration tests del pipeline
+- [ ] Performance benchmarks (SPEC-020, SPEC-021, SPEC-022)
+- [ ] Data quality validation (SPEC-019)
+
+### Fase 4: Visualización
+
+- [ ] Crear vistas materializadas
+- [ ] Conectar Power BI a Supabase
+- [ ] Diseñar dashboards
+- [ ] Crear medidas DAX
 
 ---
 
-### 10.3 Diagrama de Clases (Simplificado)
+## 12. Referencias
 
-```
-┌─────────────────────────┐
-│   <<interface>>         │
-│    IExtractor           │
-├─────────────────────────┤
-│ + extract(query)        │
-│ + validate_response()   │
-│ + parse_to_model()      │
-└───────────▲─────────────┘
-            │
-            │ implements
-            │
-            │
-┌───────────┴────────┐
-│   ArxivExtractor   │
-├────────────────────┤
-│- categories        │
-│+ extract()         │
-└────────────────────┘
-
-┌─────────────────────────┐
-│   DataCleaner           │
-├─────────────────────────┤
-│ + clean_text()          │
-│ + normalize_date()      │
-│ + validate_doi()        │
-│ + remove_duplicates()   │
-└─────────────────────────┘
-
-┌─────────────────────────┐
-│   PostgresLoader        │
-├─────────────────────────┤
-│ - connection_pool       │
-│ + load_papers()         │
-│ + load_authors()        │
-│ + bulk_insert()         │
-│ + create_checkpoint()   │
-└─────────────────────────┘
-
-┌─────────────────────────┐
-│   ETLOrchestrator       │
-├─────────────────────────┤
-│ - extractors: List      │
-│ - transformer           │
-│ - loader                │
-│ + run_full_pipeline()   │
-│ + run_incremental()     │
-│ + rollback_batch()      │
-└─────────────────────────┘
-```
-
----
-
-### 10.4 Diagrama de Secuencia: Proceso de Extracción
-
-```
-User       ETLOrchestrator   ArxivExtractor   RateLimiter   ArXivAPI   CacheManager
- │               │                 │               │            │            │
- │─run_pipeline()─>│                │               │            │            │
- │               │──extract()─────>│               │            │            │
- │               │                 │─check_limit()>│            │            │
- │               │                 │<─ok───────────│            │            │
- │               │                 │─check_cache()─────────────>│            │
- │               │                 │<─cache_miss────────────────│            │
- │               │                 │───GET /api/query ──────────────────>│   │
- │               │                 │<──200 OK (XML)─────────────────────│   │
- │               │                 │─save_to_cache()────────────────────>│   │
- │               │                 │─parse_xml()─>│            │            │
- │               │<─List[Paper]────│               │            │            │
- │<──success─────│                 │               │            │            │
-```
-
----
-
-### 10.5 Diagrama Entidad-Relación (Simplificado)
-
-```
-┌──────────────┐         ┌──────────────────┐         ┌──────────────┐
-│   papers     │         │  papers_authors  │         │   authors    │
-├──────────────┤         ├──────────────────┤         ├──────────────┤
-│ id (PK)      │◄────────┤ paper_id (FK)    │────────>│ id (PK)      │
-│ doi (UNIQUE) │         │ author_id (FK)   │         │ name         │
-│ title        │         │ author_order     │         │ orcid        │
-│ abstract     │         └──────────────────┘         │ h_index      │
-│ published_   │                                      │ institution  │
-│  _date       │                                      │ country      │
-│ citation_    │         ┌──────────────────┐         └──────────────┘
-│  _count      │         │ papers_keywords  │
-└──────┬───────┘         ├──────────────────┤
-       │                 │ paper_id (FK)    │
-       └─────────────────┤ keyword_id (FK)  │
-                         └─────────┬────────┘
-                                   │
-                         ┌─────────▼────────┐
-                         │    keywords      │
-                         ├──────────────────┤
-                         │ id (PK)          │
-                         │ keyword (UNIQUE) │
-                         │ category         │
-                         └──────────────────┘
-
-┌──────────────┐         ┌──────────────────┐
-│  citations   │         │   categories     │
-├──────────────┤         ├──────────────────┤
-│ id (PK)      │         │ id (PK)          │
-│ citing_      │         │ code (UNIQUE)    │
-│  _paper_id   │──┐      │ name             │
-│ cited_       │  │      │ description      │
-│  _paper_id   │  │      └──────────────────┘
-└──────────────┘  │
-                  │      ┌──────────────────┐
-                  │      │papers_categories │
-                  │      ├──────────────────┤
-                  └─────>│ paper_id (FK)    │
-                         │ category_id (FK) │
-                         └──────────────────┘
-```
-
----
-
-## 11. Plan de Implementación (High-Level)
-
-### 11.1 Fase 1: Fundamentos
-
-**Componentes**:
-- Configuración del proyecto (estructura de carpetas)
-- Setup de base de datos (DDL scripts)
-- Modelos de dominio (dataclasses/Pydantic)
-- Utilities básicas (logger, config manager)
-
-**Duración Estimada**: NO especificar
-
----
-
-### 11.2 Fase 2: ETL Core
-
-**Componentes**:
-- Implementación de extractores
-- Pipeline de transformación
-- Loader a PostgreSQL
-- Orchestrator básico
-
-**Duración Estimada**: NO especificar
-
----
-
-### 11.3 Fase 3: Visualización
-
-**Componentes**:
-- Vistas SQL optimizadas
-- Conexión Power BI
-- Dashboards interactivos
-- Medidas DAX
-
-**Duración Estimada**: NO especificar
-
----
-
-### 11.4 Fase 4: Análisis Avanzado (Futuro)
-
-**Componentes**:
-- Módulos NLP
-- Análisis de redes
-- Modelos predictivos
-- Visualizaciones avanzadas
-
-**Duración Estimada**: NO especificar
-
----
-
-## 12. Dependencias y Versiones
-
-### 12.1 Dependencias Core
-
-```txt
-python>=3.10
-pandas>=2.0.0
-numpy>=1.24.0
-psycopg2-binary>=2.9.0
-sqlalchemy>=2.0.0
-requests>=2.31.0
-arxiv>=2.0.0
-python-dotenv>=1.0.0
-```
-
-### 12.2 Dependencias de Testing
-
-```txt
-pytest>=7.4.0
-pytest-mock>=3.11.0
-pytest-cov>=4.1.0
-pytest-docker>=2.0.0
-responses>=0.23.0
-```
-
-### 12.3 Dependencias Futuras (NLP)
-
-```txt
-transformers>=4.30.0
-gensim>=4.3.0
-spacy>=3.5.0
-networkx>=3.1
-scikit-learn>=1.3.0
-```
-
----
-
-## 13. Glosario Técnico
-
-- **ACID**: Atomicity, Consistency, Isolation, Durability
-- **DAL**: Data Access Layer
-- **DTO**: Data Transfer Object
-- **ETL**: Extract, Transform, Load
-- **ORM**: Object-Relational Mapping
-- **SOLID**: Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
-- **3NF**: Tercera Forma Normal (normalización de BD)
-- **Idempotencia**: Operación que produce el mismo resultado si se ejecuta múltiples veces
-- **Backoff Exponencial**: Estrategia de retry con esperas crecientes (1s, 2s, 4s, 8s...)
-- **Upsert**: INSERT + UPDATE (insertar si no existe, actualizar si existe)
-- **Rate Limiting**: Control de tasa de requests para no exceder límites
-- **Materialized View**: Vista SQL pre-calculada y almacenada físicamente
-
----
-
-## 14. Referencias
-
-### 14.1 Documentación de APIs
+### Documentación de APIs
 
 - ArXiv API: https://arxiv.org/help/api/
+- ArXiv Python Library: https://pypi.org/project/arxiv/
 
-### 14.2 Documentación Técnica
+### Tecnologías
 
-- SQLAlchemy 2.0: https://docs.sqlalchemy.org/
 - PostgreSQL 15: https://www.postgresql.org/docs/15/
-- Power BI: https://learn.microsoft.com/power-bi/
+- Supabase: https://supabase.com/docs
+- Pandas: https://pandas.pydata.org/docs/
 - Pytest: https://docs.pytest.org/
 
-### 14.3 Patrones de Diseño
+### Spec Driven Development
 
-- Gang of Four Design Patterns
-- Martin Fowler - Patterns of Enterprise Application Architecture
-- Domain-Driven Design (DDD) - Eric Evans
+- Behavior-Driven Development: https://cucumber.io/docs/bdd/
+- Given-When-Then: https://martinfowler.com/bliki/GivenWhenThen.html
 
 ---
 
-## 15. Control de Cambios
+## 13. Control de Cambios
 
 | Versión | Fecha | Autor | Cambios |
 |---------|-------|-------|---------|
-| 1.0 | 2026-01-26 | Lucas Gabirondo | Versión inicial del SDD |
+| 1.0 | 2026-01-26 | Lucas Gabirondo | Versión inicial (Software Design Document) |
+| 2.0 | 2026-02-06 | Lucas Gabirondo | Convertido a Spec Driven Development |
 
 ---
 
-## 16. Aprobaciones
-
-| Rol | Nombre | Fecha | Firma |
-|-----|--------|-------|-------|
-| Tech Lead | - | - | - |
-| Architect | - | - | - |
-| Product Owner | Lucas Gabirondo | 2026-01-26 | ✓ |
-
----
-
-**Última actualización:** 26 de Enero, 2026  
-**Próxima revisión:** 15 de Febrero, 2026  
-**Estado:** DRAFT - Pendiente de Revisión Técnica
+**Última actualización:** 6 de Febrero, 2026  
+**Próxima revisión:** 28 de Febrero, 2026  
+**Estado:** ACTIVO - Especificaciones Ejecutables
